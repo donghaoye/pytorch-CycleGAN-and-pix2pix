@@ -16,19 +16,15 @@ class Pix2PixModel(BaseModel):
         BaseModel.initialize(self, opt)
         self.isTrain = opt.isTrain
         # define tensors
-        self.input_A = self.Tensor(opt.batchSize, opt.input_nc,
-                                   opt.fineSize, opt.fineSize)
-        self.input_B = self.Tensor(opt.batchSize, opt.output_nc,
-                                   opt.fineSize, opt.fineSize)
+        self.input_A = self.Tensor(opt.batchSize, opt.input_nc, opt.fineSize, opt.fineSize)
+        self.input_B = self.Tensor(opt.batchSize, opt.output_nc, opt.fineSize, opt.fineSize)
 
         # load/define networks
-        self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf,
-                                    opt.which_model_netG, opt.norm, opt.use_dropout, self.gpu_ids)
+        self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.which_model_netG, opt.norm, opt.use_dropout, self.gpu_ids)
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
             self.netD = networks.define_D(opt.input_nc + opt.output_nc, opt.ndf,
-                                         opt.which_model_netD,
-                                         opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
+                                         opt.which_model_netD, opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
         if not self.isTrain or opt.continue_train:
             self.load_network(self.netG, 'G', opt.which_epoch)
             if self.isTrain:
@@ -42,10 +38,8 @@ class Pix2PixModel(BaseModel):
             self.criterionL1 = torch.nn.L1Loss()
 
             # initialize optimizers
-            self.optimizer_G = torch.optim.Adam(self.netG.parameters(),
-                                                lr=opt.lr, betas=(opt.beta1, 0.999))
-            self.optimizer_D = torch.optim.Adam(self.netD.parameters(),
-                                                lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
 
             print('---------- Networks initialized -------------')
             networks.print_network(self.netG)
