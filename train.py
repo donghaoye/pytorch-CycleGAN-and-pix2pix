@@ -1,4 +1,5 @@
 import time
+import torch.utils.data as Data
 from options.train_options import TrainOptions
 opt = TrainOptions().parse()  # set CUDA_VISIBLE_DEVICES before import torch
 
@@ -10,6 +11,14 @@ data_loader = CreateDataLoader(opt)
 dataset = data_loader.load_data()
 dataset_size = len(data_loader)
 print('#training images = %d' % dataset_size)
+
+# if opt.which_model_netG == 'flownet':
+#     dataset = Data.DataLoader(
+#         opt.dataroot, batch_size=opt.batchSize,
+#         #sampler=balancedsampler.SequentialBalancedSampler(train_set,args.epoch_size),
+#         )
+# dataset_size = len(dataset)
+# print('#training images = %d' % dataset_size)
 
 model = create_model(opt)
 visualizer = Visualizer(opt)
