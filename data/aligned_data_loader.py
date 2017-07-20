@@ -35,6 +35,7 @@ class PairedData(object):
         h_offset = random.randint(0, max(0, h - self.fineSize - 1))
         A = AB[:, :, h_offset:h_offset + self.fineSize,
                w_offset:w_offset + self.fineSize]
+
         B = AB[:, :, h_offset:h_offset + self.fineSize,
                w + w_offset:w + w_offset + self.fineSize]
 
@@ -44,7 +45,7 @@ class PairedData(object):
             A = A.index_select(3, idx)
             B = B.index_select(3, idx)
 
-            
+
 
         return {'A': A, 'A_paths': AB_paths, 'B': B, 'B_paths': AB_paths}
 

@@ -92,6 +92,8 @@ CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data2/trai
 ```bash
 #!./scripts/test_pix2pix.sh
 python test.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --align_data
+CUDA_VISIBLE_DEVICES=2 python test.py --dataroot /data/donghaoye/KTH/data2/test_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --align_data
+
 ```
 The test results will be saved to a html file here: `./results/facades_pix2pix/latest_val/index.html`.
 

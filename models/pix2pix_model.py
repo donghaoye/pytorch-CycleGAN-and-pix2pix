@@ -18,6 +18,8 @@ class Pix2PixModel(BaseModel):
         # define tensors
         self.input_A = self.Tensor(opt.batchSize, opt.input_nc, opt.fineSize, opt.fineSize)
         self.input_B = self.Tensor(opt.batchSize, opt.output_nc, opt.fineSize, opt.fineSize)
+        # self.input_A = self.Tensor(opt.batchSize, opt.input_nc, 720, 720)
+        # self.input_B = self.Tensor(opt.batchSize, opt.output_nc, 720, 720)
 
         # load/define networks
         self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.which_model_netG, opt.norm, opt.use_dropout, self.gpu_ids)

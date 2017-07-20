@@ -10,7 +10,8 @@ class Visualizer():
         # self.opt = opt
         self.display_id = opt.display_id
         self.use_html = opt.isTrain and not opt.no_html
-        self.win_size = opt.display_winsize
+        self.win_width = opt.display_win_width
+        self.win_height = opt.display_win_height
         self.name = opt.name
         if self.display_id > 0:
             import visdom
@@ -50,7 +51,7 @@ class Visualizer():
                     ims.append(img_path)
                     txts.append(label)
                     links.append(img_path)
-                webpage.add_images(ims, txts, links, width=self.win_size)
+                webpage.add_images(ims, txts, links, width=self.win_width)
             webpage.save()
 
     # errors: dictionary of error labels and values
@@ -96,4 +97,4 @@ class Visualizer():
             ims.append(image_name)
             txts.append(label)
             links.append(image_name)
-        webpage.add_images(ims, txts, links, width=self.win_size)
+        webpage.add_images(ims, txts, links, width=self.win_width, height=self.win_height)

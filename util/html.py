@@ -30,7 +30,7 @@ class HTML:
         self.t = table(border=border, style="table-layout: fixed;")
         self.doc.add(self.t)
 
-    def add_images(self, ims, txts, links, width=400):
+    def add_images(self, ims, txts, links, width=1280, height=720):
         self.add_table()
         with self.t:
             with tr():
@@ -38,7 +38,7 @@ class HTML:
                     with td(style="word-wrap: break-word;", halign="center", valign="top"):
                         with p():
                             with a(href=os.path.join('images', link)):
-                                img(style="width:%dpx" % width, src=os.path.join('images', im))
+                                img(style="width:%dpx;height:%dpx" % (width,height), src=os.path.join('images', im))
                             br()
                             p(txt)
 
