@@ -92,7 +92,7 @@ CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data
 CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG flownet --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG sia_unet --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
 
-CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B_C --name skeleton_pix2pix_abc --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data6/train_A_B_C/train --name skeleton_pix2pix_abc --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan
 
 加上 --serial_batches 就代表是True了(因为是action='store_true')，有序训练
 
