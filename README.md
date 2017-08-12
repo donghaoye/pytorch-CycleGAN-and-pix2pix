@@ -65,6 +65,11 @@ bash ./datasets/download_cyclegan_dataset.sh maps
 #!./scripts/train_cyclegan.sh
 python train.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan
 python train.py --dataroot ./datasets/stand2sit --name stand2sit_cyclegan --model cycle_gan --which_model_netG flownet
+python train.py --dataroot /data/donghaoye/KTH/data_cycleGAN/skeleton --name skeleton_cyclegan --model cycle_gan
+python train.py --dataroot /data/donghaoye/KTH/data5_cycleGAN/handwaving_walking --name handwaving_walking_cyclegan --model cycle_gan
+
+
+
 ```
 - To view training results and loss plots, run `python -m visdom.server` and click the URL http://localhost:8097. To see more intermediate results, check out `./checkpoints/maps_cyclegan/web/index.html`
 - Test the model:
@@ -83,8 +88,13 @@ bash ./datasets/download_pix2pix_dataset.sh facades
 ```bash
 #!./scripts/train_pix2pix.sh
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --align_data --use_dropout --no_lsgan
-CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data2/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --align_data --use_dropout --no_lsgan
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
+CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG flownet --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG sia_unet --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
 
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B_C --name skeleton_pix2pix_abc --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan
+
+加上 --serial_batches 就代表是True了(因为是action='store_true')，有序训练
 
 ```
 - To view training results and loss plots, run `python -m visdom.server` and click the URL http://localhost:8097. To see more intermediate results, check out  `./checkpoints/facades_pix2pix/web/index.html`
@@ -92,7 +102,7 @@ CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data2/trai
 ```bash
 #!./scripts/test_pix2pix.sh
 python test.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --align_data
-CUDA_VISIBLE_DEVICES=2 python test.py --dataroot /data/donghaoye/KTH/data2/test_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --align_data
+CUDA_VISIBLE_DEVICES=1 python test.py --dataroot /home/disk2/donghaoye/KTH/data4/test_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA  --align_data
 
 ```
 The test results will be saved to a html file here: `./results/facades_pix2pix/latest_val/index.html`.
@@ -103,7 +113,6 @@ More example scripts can be found at `scripts` directory.
 - See `options/train_options.py` and `options/base_options.py` for training flags; see `options/test_options.py` and `options/base_options.py` for test flags.
 - CPU/GPU (default `--gpu_ids 0`): Set `--gpu_ids -1` to use CPU mode; set `--gpu_ids 0,1,2` for multi-GPU mode. You need a large batch size (e.g. `--batchSize 32`) to benefit from multiple gpus.  
 - During training, the current results can be viewed using two methods. First, if you set `--display_id` > 0, the results and loss plot will be shown on a local graphics web server launched by [visdom](https://github.com/facebookresearch/visdom). To do this, you should have visdom installed and a server running by the command `python -m visdom.server`. The default server URL is `http://localhost:8097`. `display_id` corresponds to the window ID that is displayed on the `visdom` server. The `visdom` display functionality is turned on by default. To avoid the extra overhead of communicating with `visdom` set `--display_id 0`. Second, the intermediate results are saved to `[opt.checkpoints_dir]/[opt.name]/web/` as an HTML file. To avoid this, set `--no_html`.
-
 
 ### CycleGAN Datasets
 Download the CycleGAN datasets using the following script:
@@ -162,3 +171,6 @@ If you love cats, and love reading cool graphics, vision, and learning papers, p
 
 ## Acknowledgments
 Code is inspired by [pytorch-DCGAN](https://github.com/pytorch/examples/tree/master/dcgan).
+
+GOOD
+
