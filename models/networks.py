@@ -47,7 +47,7 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
     elif which_model_netG == 'flownet':
         netG = FlowNetGenerator(input_nc, output_nc, gpu_ids=gpu_ids)
     elif which_model_netG == 'sia_unet':
-        netG = siamese_Unet(input_nc, output_nc, use_bn=True, gpu_ids=gpu_ids)
+        netG = siamese_Unet_2(input_nc, output_nc, use_bn=True)
     else:
         print('Generator model name [%s] is not recognized' % which_model_netG)
     if len(gpu_ids) > 0:
@@ -259,7 +259,6 @@ class UnetGenerator(nn.Module):
         unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, innermost=True)
         for i in range(num_downs - 5):
             unet_block = UnetSkipConnectionBlock(ngf * 8, ngf * 8, unet_block, norm_layer=norm_layer, use_dropout=use_dropout)
-            # 这里是最中间层
         unet_block = UnetSkipConnectionBlock(ngf * 4, ngf * 8, unet_block, norm_layer=norm_layer)
         unet_block = UnetSkipConnectionBlock(ngf * 2, ngf * 4, unet_block, norm_layer=norm_layer)
         unet_block = UnetSkipConnectionBlock(ngf, ngf * 2, unet_block, norm_layer=norm_layer)
@@ -577,155 +576,216 @@ class FlowNetGenerator(nn.Module):
 
 
 
-
-
-
-
-
-
-
-def down_sample(dim_in, dim_out, kernel_size=4, stride=2, bias=True, use_bn=False):
+def down_sample(dim_in, dim_out, kernel_size=4, stride=2, padding=1, bias=True, use_bn=False):
     if use_bn:
         return nn.Sequential(
-            nn.Conv2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, bias=bias),
+            nn.Conv2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias),
             nn.BatchNorm2d(dim_out),
-            nn.LeakyReLU(0.2)
+            nn.LeakyReLU(0.2, True)
         )
     else:
         return nn.Sequential(
-            nn.Conv2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, bias=bias),
+            nn.Conv2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias),
             nn.LeakyReLU(0.2)
         )
 
-
-def up_sample(dim_in, dim_out, kernel_size=4, stride=2, bias=False, use_bn=False):
+def up_sample(dim_in, dim_out, kernel_size=4, stride=2, padding=1, bias=True, use_bn=False):
     if use_bn:
         return nn.Sequential(
-            nn.ConvTranspose2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, bias=bias),
+            nn.ConvTranspose2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias),
             nn.BatchNorm2d(dim_out),
+            nn.LeakyReLU(0.2),
             nn.Dropout(0.5),
             nn.ReLU()
         )
-    # else:
-    #     return nn.Sequential(
-    #         nn.ConvTranspose2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, bias=bias),
-    #         nn.Dropout(0.5),
-    #         nn.ReLU()
-    #     )
-
-# def upsample(ch_coarse, ch_fine):
-#   return nn.Sequential(
-#     nn.ConvTranspose2d(ch_coarse, ch_fine, 4, 2, 1, bias=False),
-#     nn.ReLU()
-#   )
+    else:
+        return nn.Sequential(
+            nn.ConvTranspose2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, bias=bias),
+            nn.Dropout(0.5),
+            nn.ReLU()
+        )
 
 class siamese_Unet(nn.Module):
-    def __init__(self, input_nc, output_nc, use_bn=False, gpu_ids=[]):
+    def __init__(self, input_nc, output_nc, use_bn=False):
         super(siamese_Unet, self).__init__()
+        self.gf_dim = 64
 
         ''' siamese down start'''
-        self.down0_skeleton = down_sample(input_nc, 32, use_bn=False)
-        self.down1_skeleton = down_sample(32, 64, use_bn=use_bn)
-        self.down2_skeleton = down_sample(64, 128, use_bn=use_bn)
-        self.down3_skeleton = down_sample(128, 256, use_bn=use_bn)
-        self.down4_skeleton = down_sample(256, 512, use_bn=use_bn)
-        # self.down5_skeleton = down_sample(256, 512, use_bn=use_bn)
-        # self.down6_skeleton = down_sample(256, 512, use_bn=use_bn)
-        # self.down7_skeleton = down_sample(256, 512, use_bn=use_bn)
-        # self.down8_skeleton = down_sample(256, 512, use_bn=use_bn)
-
-        self.down4_skeleton_up = down_sample(512, 256, use_bn=use_bn)
-        self.down3_skeleton_up = down_sample(256, 128, use_bn=use_bn)
-        self.down2_skeleton_up = down_sample(128, 64, use_bn=use_bn)
-        self.down1_skeleton_up = down_sample(64, 32, use_bn=use_bn)
-        self.down0_skeleton_up = down_sample(32, output_nc, use_bn=use_bn)
-
-        self.down0_real = down_sample(input_nc, 32, use_bn=False)
-        self.down1_real = down_sample(32, 64, use_bn=use_bn)
-        self.down2_real = down_sample(64, 128, use_bn=use_bn)
-        self.down3_real = down_sample(128, 256, use_bn=use_bn)
-        self.down4_real = down_sample(256, 512, use_bn=use_bn)
-        # self.down5_real = down_sample(256, 512, use_bn=use_bn)
-        # self.down6_real = down_sample(256, 512, use_bn=use_bn)
-        # self.down7_real = down_sample(256, 512, use_bn=use_bn)
-        # self.down8_real = down_sample(256, 512, use_bn=use_bn)
-
-        self.down4_up = down_sample(512, 256, use_bn=use_bn)
-        self.down3_up = down_sample(256, 128, use_bn=use_bn)
-        self.down2_up = down_sample(128, 64, use_bn=use_bn)
-        self.down1_up = down_sample(64, 32, use_bn=use_bn)
-
+        # input 256*256*3
+        self.down1_skeleton = down_sample(input_nc, self.gf_dim, use_bn=False)
+        self.down2_skeleton = down_sample(self.gf_dim, self.gf_dim*2, use_bn=use_bn)
+        self.down3_skeleton = down_sample(self.gf_dim*2, self.gf_dim*4, use_bn=use_bn)
+        self.down4_skeleton = down_sample(self.gf_dim*4, self.gf_dim*8, use_bn=use_bn)
+        self.down5_skeleton = down_sample(self.gf_dim*8, self.gf_dim*8, use_bn=use_bn)
+        self.down6_skeleton = down_sample(self.gf_dim*8, self.gf_dim*8, use_bn=use_bn)
+        self.down7_skeleton = down_sample(self.gf_dim*8, self.gf_dim*8, use_bn=use_bn)
+        self.down8_skeleton = down_sample(self.gf_dim*8, self.gf_dim*8, use_bn=use_bn)
+        # input 256*256*3
+        self.down1_real = down_sample(input_nc, 64, use_bn=False)
+        self.down2_real = down_sample(self.gf_dim, self.gf_dim*2, use_bn=use_bn)
+        self.down3_real = down_sample(self.gf_dim*2, self.gf_dim*4, use_bn=use_bn)
+        self.down4_real = down_sample(self.gf_dim*4, self.gf_dim*8, use_bn=use_bn)
+        self.down5_real = down_sample(self.gf_dim*8, self.gf_dim*8, use_bn=use_bn)
+        self.down6_real = down_sample(self.gf_dim*8, self.gf_dim*8, use_bn=use_bn)
+        self.down7_real = down_sample(self.gf_dim*8, self.gf_dim*8, use_bn=use_bn)
+        self.down8_real = down_sample(self.gf_dim*8, self.gf_dim*8, use_bn=use_bn)
         ''' siamese down end'''
 
-        self.up_sample43 = up_sample(512, 256, use_bn=use_bn)
-        self.up_sample32 = up_sample(256, 128, use_bn=use_bn)
-        self.up_sample21 = up_sample(128, 64, use_bn=use_bn)
-        self.up_sample10 = up_sample(64, 32, use_bn=use_bn)
-
-        self.down1 = down_sample(128, 128, use_bn=use_bn)
-        self.down2 = down_sample(64, 64, use_bn=use_bn)
-
-        self.result = nn.Conv2d(64, 3, kernel_size=3, stride=1, padding=1, bias=False)
-
+        # input 60*60*1
+        self.up_sample1 = up_sample(self.gf_dim*8, self.gf_dim*8, use_bn=use_bn)        # it will cat in next step
+        self.up_sample2 = up_sample(self.gf_dim*8*2, self.gf_dim*8, use_bn=use_bn)
+        self.up_sample3 = up_sample(self.gf_dim*8*2, self.gf_dim*8, use_bn=use_bn)
+        self.up_sample4 = up_sample(self.gf_dim*8*2, self.gf_dim*8, use_bn=use_bn)
+        self.up_sample5 = up_sample(self.gf_dim*8*2, self.gf_dim*4, use_bn=use_bn)
+        self.up_sample6 = up_sample(self.gf_dim*8, self.gf_dim*2, use_bn=use_bn)
+        self.up_sample7 = up_sample(self.gf_dim*4, self.gf_dim, use_bn=use_bn)
+        self.up_sample8 = up_sample(self.gf_dim*2, output_nc, use_bn=use_bn)
 
     def forward(self, x):                                               # 1x3x256x256
-        down0_skeleton_out = self.down0_skeleton(x)                     # 1x32x127x127
-        down1_skeleton_out = self.down1_skeleton(down0_skeleton_out)    # 1x64x62x62
-        down2_skeleton_out = self.down2_skeleton(down1_skeleton_out)    # 1x128x30x30
-        down3_skeleton_out = self.down3_skeleton(down2_skeleton_out)    # 1x256x14x14
-        down4_skeleton_out = self.down4_skeleton(down3_skeleton_out)    # 1x512x6x6
+        down1_skeleton_out = self.down1_skeleton(x)                     # 1x64x128x128
+        down2_skeleton_out = self.down2_skeleton(down1_skeleton_out)    # 1x128x64x64
+        down3_skeleton_out = self.down3_skeleton(down2_skeleton_out)    # 1x256x32x32
+        down4_skeleton_out = self.down4_skeleton(down3_skeleton_out)    # 1x512x16x16
+        down5_skeleton_out = self.down5_skeleton(down4_skeleton_out)    # 1x512x8x8
+        down6_skeleton_out = self.down6_skeleton(down5_skeleton_out)    # 1x512x4x4
+        down7_skeleton_out = self.down7_skeleton(down6_skeleton_out)    # 1x512x2x2
+        down8_skeleton_out = self.down8_skeleton(down7_skeleton_out)    # 1x512x1x1
 
-        # down5_skeleton_out = self.down5_skeleton(down4_skeleton_out)
-        # down6_skeleton_out = self.down6_skeleton(down5_skeleton_out)
-        # down7_skeleton_out = self.down7_skeleton(down6_skeleton_out)
-        # down8_skeleton_out = self.down8_skeleton(down7_skeleton_out)
-
-        down0_real_out = self.down0_real(x)
-        down1_real_out = self.down1_real(down0_real_out)
+        down1_real_out = self.down1_real(x)
         down2_real_out = self.down2_real(down1_real_out)
         down3_real_out = self.down3_real(down2_real_out)
         down4_real_out = self.down4_real(down3_real_out)
-        # down5_real_out = self.down5_real(down4_real_out)
-        # down6_real_out = self.down6_real(down5_real_out)
-        # down7_real_out = self.down7_real(down6_real_out)
-        # down8_real_out = self.down8_real(down7_real_out)
+        down5_real_out = self.down5_real(down4_real_out)
+        down6_real_out = self.down6_real(down5_real_out)
+        down7_real_out = self.down7_real(down6_real_out)
+        down8_real_out = self.down8_real(down7_real_out)
 
         # mid
-        #down8_skeleton_real_out = torch.cat((down4_skeleton_out, down4_real_out), 1)       # 1x1024x6x6
-        #down8_skeleton_real_out = torch.cat((down4_skeleton_out, down4_real_out), 0)        # 2x512x6x6
-        down8_skeleton_real_out = torch.cat((down4_skeleton_out, down4_real_out), 3)
-        print down8_skeleton_real_out
+        down8_skeleton_real_out = torch.cat((down8_skeleton_out, down8_real_out), 2)        # 1x512x2x1
 
-        up_sample_43 = self.up_sample43(down8_skeleton_real_out)                            # 2x256x14x14
-        up3_skeleton_real_out = torch.cat((down3_skeleton_out, down3_real_out), 0)          # 2x256x14x14
-        up_out_43 = torch.cat((up_sample_43, up3_skeleton_real_out), 1)                     # 2x512x14x14
-        up_conv_out_43 = self.down4_skeleton_up(up_out_43)                                  # 2x256x6x6
+        up_sample_1 = self.up_sample1(down8_skeleton_real_out)                              # 1x512x4x2
+        up_skeleton_real_out_1 = torch.cat((down7_skeleton_out, down7_real_out), 2)         # 1x512x4x2
+        up_out_1 = torch.cat((up_sample_1, up_skeleton_real_out_1), 1)                      # 1x1024x4x2
 
-        up_sample_32 = self.up_sample32(up_conv_out_43)                                     # 2x128x14x14
-        up2_skeleton_real_out = torch.cat((down2_skeleton_out, down2_real_out), 0)          # 2x128x30x30
-        up2_skeleton_real_out_2 = self.down1(up2_skeleton_real_out)
-        up_out_32 = torch.cat((up_sample_32, up2_skeleton_real_out_2), 1)
-        up_conv_out_32 = self.down3_skeleton_up(up_out_32)
+        up_sample_2 = self.up_sample2(up_out_1)                                             # 1x512x8x4
+        up_skeleton_real_out_2 = torch.cat((down6_skeleton_out, down6_real_out), 2)         # 1x512x8x4
+        up_out_2 = torch.cat((up_sample_2, up_skeleton_real_out_2), 1)                      # 1x1024x8x4
 
-        up_sample_21 = self.up_sample21(up_conv_out_32)                                     # 2x64x14x14
-        up1_skeleton_real_out = torch.cat((down1_skeleton_out, down1_real_out), 0)          # 2x64x62x62
-        up1_skeleton_real_out_2 = self.down2(up1_skeleton_real_out)                         # 2x64x30x30
-        up1_skeleton_real_out_3 = self.down2(up1_skeleton_real_out_2)                       # 2x64x14x14
+        up_sample_3 = self.up_sample3(up_out_2)                                             # 1x512x16x8
+        up_skeleton_real_out_3 = torch.cat((down5_skeleton_out, down5_real_out), 2)         # 1x512x16x8
+        up_out_3 = torch.cat((up_sample_3, up_skeleton_real_out_3), 1)                      # 1x1024x16x8
 
-        up_out_21 = torch.cat((up_sample_21, up1_skeleton_real_out_3), 1)                   # 2x128x14x14
-        #up_conv_out_21 = self.down2_skeleton_up(up_out_21)                                 # 2x64x6x6
-        up_sample_21_2 = self.up_sample21(up_out_21)                                        # 2x64x30x30
-        print up_sample_21_2
-        tmp = self.result(up_sample_21_2)
-        print tmp
-        #up_sample_10 = self.up_sample10(up_conv_out_21)
-        #print up_sample_10
-        #up_sample_10_2 = self.up_sample10(up_sample_10)
-        # up_conv_out_10 = self.down1_skeleton_up(up_conv_out_21)                             # 2x32x2x2
-        # up_conv_out_0 = self.down0_skeleton_up(up_conv_out_10)
-        #print up_sample_10_2
-        return tmp                                                               # 1x3x256x256
+        up_sample_4 = self.up_sample4(up_out_3)                                             # 1x512x32x16
+        up_skeleton_real_out_4 = torch.cat((down4_skeleton_out, down4_real_out), 2)         # 1x512x32x16
+        up_out_4 = torch.cat((up_sample_4, up_skeleton_real_out_4), 1)                      # 1x1024x32x16
+
+        up_sample_5 = self.up_sample5(up_out_4)                                             # 1x256x64x32
+        up_skeleton_real_out_5 = torch.cat((down3_skeleton_out, down3_real_out), 2)         # 1x256x64x32
+        up_out_5 = torch.cat((up_sample_5, up_skeleton_real_out_5), 1)                      # 1x512x64x32
+
+        up_sample_6 = self.up_sample6(up_out_5)                                             # 1x128x128x64
+        up_skeleton_real_out_6 = torch.cat((down2_skeleton_out, down2_real_out), 2)         # 1x128x128x64
+        up_out_6 = torch.cat((up_sample_6, up_skeleton_real_out_6), 1)                      # 1x256x128x64
+
+        up_sample_7 = self.up_sample7(up_out_6)                                             # 1x64x256x128
+        up_skeleton_real_out_7 = torch.cat((down1_skeleton_out, down1_real_out), 2)         # 1x64x256x128
+        up_out_7 = torch.cat((up_sample_7, up_skeleton_real_out_7), 1)                      # 1x128x256x128
+
+        up_sample_8 = self.up_sample8(up_out_7)                                             # 1x3x512x256
+        # 256 * 512 乘 512 * 256 可以变形?
+
+        return up_sample_8
 
 
+class siamese_Unet_2(nn.Module):
+    def __init__(self, input_nc, output_nc, use_bn=False):
+        super(siamese_Unet_2, self).__init__()
+        self.gf_dim = 64
+
+        ''' siamese down start'''
+        # input 256*256*3
+        self.down1_skeleton = down_sample(input_nc, self.gf_dim, use_bn=False)
+        self.down2_skeleton = down_sample(self.gf_dim, self.gf_dim * 2, use_bn=use_bn)
+        self.down3_skeleton = down_sample(self.gf_dim * 2, self.gf_dim * 4, use_bn=use_bn)
+        self.down4_skeleton = down_sample(self.gf_dim * 4, self.gf_dim * 8, use_bn=use_bn)
+        self.down5_skeleton = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        self.down6_skeleton = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        self.down7_skeleton = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        self.down8_skeleton = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        # input 256*256*3
+        self.down1_real = down_sample(input_nc, self.gf_dim, use_bn=False)
+        self.down2_real = down_sample(self.gf_dim, self.gf_dim * 2, use_bn=use_bn)
+        self.down3_real = down_sample(self.gf_dim * 2, self.gf_dim * 4, use_bn=use_bn)
+        self.down4_real = down_sample(self.gf_dim * 4, self.gf_dim * 8, use_bn=use_bn)
+        self.down5_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        self.down6_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        self.down7_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        self.down8_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        ''' siamese down end'''
+
+        # cd512-cd1024-cd1024-c1024-c1024-c512-c256-c128 看第2位参数
+        self.up_sample1 = up_sample(self.gf_dim * 8 * 2, self.gf_dim * 8 * 2, use_bn=use_bn)  # it will cat in next step
+        self.up_sample2 = up_sample(self.gf_dim * 8 * 2 * 2, self.gf_dim * 8 * 2, use_bn=use_bn)
+        self.up_sample3 = up_sample(self.gf_dim * 8 * 2 * 2, self.gf_dim * 8 * 2, use_bn=use_bn)
+        self.up_sample4 = up_sample(self.gf_dim * 8 * 2 * 2, self.gf_dim * 8 * 2, use_bn=use_bn)
+        self.up_sample5 = up_sample(self.gf_dim * 8 * 2 * 2, self.gf_dim * 8, use_bn=use_bn)
+        self.up_sample6 = up_sample(self.gf_dim * 8 * 2, self.gf_dim * 4, use_bn=use_bn)
+        self.up_sample7 = up_sample(self.gf_dim * 8, self.gf_dim * 2, use_bn=use_bn)
+        self.up_sample8 = up_sample(self.gf_dim * 4, output_nc, use_bn=use_bn)
+
+    def forward(self, x):  # 1x3x256x256
+        down1_skeleton_out = self.down1_skeleton(x)  # 1x64x128x128
+        down2_skeleton_out = self.down2_skeleton(down1_skeleton_out)  # 1x128x64x64
+        down3_skeleton_out = self.down3_skeleton(down2_skeleton_out)  # 1x256x32x32
+        down4_skeleton_out = self.down4_skeleton(down3_skeleton_out)  # 1x512x16x16
+        down5_skeleton_out = self.down5_skeleton(down4_skeleton_out)  # 1x512x8x8
+        down6_skeleton_out = self.down6_skeleton(down5_skeleton_out)  # 1x512x4x4
+        down7_skeleton_out = self.down7_skeleton(down6_skeleton_out)  # 1x512x2x2
+        down8_skeleton_out = self.down8_skeleton(down7_skeleton_out)  # 1x512x1x1
+
+        down1_real_out = self.down1_real(x)
+        down2_real_out = self.down2_real(down1_real_out)
+        down3_real_out = self.down3_real(down2_real_out)
+        down4_real_out = self.down4_real(down3_real_out)
+        down5_real_out = self.down5_real(down4_real_out)
+        down6_real_out = self.down6_real(down5_real_out)
+        down7_real_out = self.down7_real(down6_real_out)
+        down8_real_out = self.down8_real(down7_real_out)
+
+        # mid
+        # means decoder layer 1
+        down8_skeleton_real_out = torch.cat((down8_skeleton_out, down8_real_out), 1)    # 1x1024x1x1
+
+        up_sample_1 = self.up_sample1(down8_skeleton_real_out)                          # 1x1024x2x2
+        up_skeleton_real_out_1 = torch.cat((down7_skeleton_out, down7_real_out), 1)     # 1x1024x2x2
+        up_out_1 = torch.cat((up_sample_1, up_skeleton_real_out_1), 1)                  # 1x2048x2x2
+
+        up_sample_2 = self.up_sample2(up_out_1)                                         # 1x1024x4x4
+        up_skeleton_real_out_2 = torch.cat((down6_skeleton_out, down6_real_out), 1)     # 1x1024x4x4
+        up_out_2 = torch.cat((up_sample_2, up_skeleton_real_out_2), 1)                  # 1x2048x8x4
+
+        up_sample_3 = self.up_sample3(up_out_2)                                         # 1x1024x8x8
+        up_skeleton_real_out_3 = torch.cat((down5_skeleton_out, down5_real_out), 1)     # 1x1024x8x8
+        up_out_3 = torch.cat((up_sample_3, up_skeleton_real_out_3), 1)                  # 1x2048x8x8
+
+        up_sample_4 = self.up_sample4(up_out_3)                                         # 1x1024x16x16
+        up_skeleton_real_out_4 = torch.cat((down4_skeleton_out, down4_real_out), 1)     # 1x1024x16x16
+        up_out_4 = torch.cat((up_sample_4, up_skeleton_real_out_4), 1)                  # 1x2048x16x16
+
+        up_sample_5 = self.up_sample5(up_out_4)                                         # 1x512x32x32
+        up_skeleton_real_out_5 = torch.cat((down3_skeleton_out, down3_real_out), 1)     # 1x512x32x32
+        up_out_5 = torch.cat((up_sample_5, up_skeleton_real_out_5), 1)                  # 1x1024x32x32
+
+        up_sample_6 = self.up_sample6(up_out_5)                                         # 1x256x64x64
+        up_skeleton_real_out_6 = torch.cat((down2_skeleton_out, down2_real_out), 1)     # 1x256x64x64
+        up_out_6 = torch.cat((up_sample_6, up_skeleton_real_out_6), 1)                  # 1x512x64x64
+
+        up_sample_7 = self.up_sample7(up_out_6)                                         # 1x128x128x128
+        up_skeleton_real_out_7 = torch.cat((down1_skeleton_out, down1_real_out), 1)     # 1x128x128x128
+        up_out_7 = torch.cat((up_sample_7, up_skeleton_real_out_7), 1)                  # 1x256x128x128
+
+        up_sample_8 = self.up_sample8(up_out_7)                                         # 1x3x256x256
+
+        return up_sample_8
 
 
