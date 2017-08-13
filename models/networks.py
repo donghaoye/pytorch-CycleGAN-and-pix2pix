@@ -65,9 +65,11 @@ def define_D(input_nc, ndf, which_model_netD,
     if use_gpu:
         assert(torch.cuda.is_available())
     if which_model_netD == 'basic':
-        netD = NLayerDiscriminator(input_nc, ndf, n_layers=3, norm_layer=norm_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
+        #netD = NLayerDiscriminator(input_nc, ndf, n_layers=3, norm_layer=norm_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
+        netD = NLayerDiscriminator2(input_nc, ndf, n_layers=3, norm_layer=norm_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
     elif which_model_netD == 'n_layers':
-        netD = NLayerDiscriminator(input_nc, ndf, n_layers_D, norm_layer=norm_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
+        #netD = NLayerDiscriminator(input_nc, ndf, n_layers_D, norm_layer=norm_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
+        netD = NLayerDiscriminator2(input_nc, ndf, n_layers_D, norm_layer=norm_layer, use_sigmoid=use_sigmoid, gpu_ids=gpu_ids)
     else:
         print('Discriminator model name [%s] is not recognized' %
               which_model_netD)
@@ -435,6 +437,56 @@ class NLayerDiscriminator(nn.Module):
         else:
             return self.model(input)
 
+# Defines the PatchGAN discriminator2 with the specified arguments.
+class NLayerDiscriminator2(nn.Module):
+    def __init__(self, input_nc, ndf=64, n_layers=3, norm_layer=nn.BatchNorm2d, use_sigmoid=False, gpu_ids=[]):
+        super(NLayerDiscriminator2, self).__init__()
+        self.gpu_ids = gpu_ids
+
+        kw = 4
+        padw = int(np.ceil((kw - 1) / 2))
+        sequence = [
+            nn.Conv2d(input_nc, ndf, kernel_size=kw, stride=2, padding=padw),
+            nn.LeakyReLU(0.2, True)
+        ]
+
+        nf_mult = 1
+        nf_mult_prev = 1
+        for n in range(1, n_layers):
+            nf_mult_prev = nf_mult
+            nf_mult = min(2 ** n, 8)
+            sequence += [
+                nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
+                          kernel_size=kw, stride=2, padding=padw),
+                # TODO: use InstanceNorm
+                norm_layer(ndf * nf_mult, affine=True),
+                nn.LeakyReLU(0.2, True)
+            ]
+
+        nf_mult_prev = nf_mult
+        nf_mult = min(2 ** n_layers, 8)
+        sequence += [
+            nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
+                      kernel_size=kw, stride=1, padding=padw),
+            # TODO: useInstanceNorm
+            norm_layer(ndf * nf_mult, affine=True),
+            nn.LeakyReLU(0.2, True)
+        ]
+
+        sequence += [nn.Conv2d(ndf * nf_mult, 1, kernel_size=kw, stride=1, padding=padw)]
+
+        if use_sigmoid:
+            sequence += [nn.Sigmoid()]
+
+        self.model = nn.Sequential(*sequence)
+
+    def forward(self, input):
+        # if len(self.gpu_ids) and isinstance(input.data, torch.cuda.FloatTensor):
+        #     print input
+        #     return nn.parallel.data_parallel(self.model, input, self.gpu_ids)
+        # else:
+        #     return self.model(input)
+        return self.model(input)
 
 
 # flownet
@@ -586,7 +638,7 @@ def down_sample(dim_in, dim_out, kernel_size=4, stride=2, padding=1, bias=True, 
     else:
         return nn.Sequential(
             nn.Conv2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias),
-            nn.LeakyReLU(0.2)
+            nn.LeakyReLU(0.2, True)
         )
 
 def up_sample(dim_in, dim_out, kernel_size=4, stride=2, padding=1, bias=True, use_bn=False):
@@ -594,7 +646,7 @@ def up_sample(dim_in, dim_out, kernel_size=4, stride=2, padding=1, bias=True, us
         return nn.Sequential(
             nn.ConvTranspose2d(dim_in, dim_out, kernel_size=kernel_size, stride=stride, padding=padding, bias=bias),
             nn.BatchNorm2d(dim_out),
-            nn.LeakyReLU(0.2),
+            nn.LeakyReLU(0.2, True),
             nn.Dropout(0.5),
             nn.ReLU()
         )
@@ -733,8 +785,8 @@ class siamese_Unet_2(nn.Module):
         self.up_sample7 = up_sample(self.gf_dim * 8, self.gf_dim * 2, use_bn=use_bn)
         self.up_sample8 = up_sample(self.gf_dim * 4, output_nc, use_bn=use_bn)
 
-    def forward(self, x):  # 1x3x256x256
-        down1_skeleton_out = self.down1_skeleton(x)  # 1x64x128x128
+    def forward(self, x1, x2):  # 1x3x256x256
+        down1_skeleton_out = self.down1_skeleton(x1)  # 1x64x128x128
         down2_skeleton_out = self.down2_skeleton(down1_skeleton_out)  # 1x128x64x64
         down3_skeleton_out = self.down3_skeleton(down2_skeleton_out)  # 1x256x32x32
         down4_skeleton_out = self.down4_skeleton(down3_skeleton_out)  # 1x512x16x16
@@ -743,7 +795,7 @@ class siamese_Unet_2(nn.Module):
         down7_skeleton_out = self.down7_skeleton(down6_skeleton_out)  # 1x512x2x2
         down8_skeleton_out = self.down8_skeleton(down7_skeleton_out)  # 1x512x1x1
 
-        down1_real_out = self.down1_real(x)
+        down1_real_out = self.down1_real(x2)
         down2_real_out = self.down2_real(down1_real_out)
         down3_real_out = self.down3_real(down2_real_out)
         down4_real_out = self.down4_real(down3_real_out)

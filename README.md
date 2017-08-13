@@ -63,6 +63,7 @@ bash ./datasets/download_cyclegan_dataset.sh maps
 - Train a model:
 ```bash
 #!./scripts/train_cyclegan.sh
+--align_data 2
 python train.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan
 python train.py --dataroot ./datasets/stand2sit --name stand2sit_cyclegan --model cycle_gan --which_model_netG flownet
 python train.py --dataroot /data/donghaoye/KTH/data_cycleGAN/skeleton --name skeleton_cyclegan --model cycle_gan
@@ -87,6 +88,8 @@ bash ./datasets/download_pix2pix_dataset.sh facades
 - Train a model:
 ```bash
 #!./scripts/train_pix2pix.sh
+
+--align_data 2
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --align_data --use_dropout --no_lsgan
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
 CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG flownet --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan

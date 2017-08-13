@@ -10,6 +10,10 @@ def create_model(opt):
         from .pix2pix_model import Pix2PixModel
         assert(opt.align_data == True)
         model = Pix2PixModel()
+    elif opt.model == 'pix2pix_abc':
+        from .pix2pix_model_ABC import Pix2PixModelABC
+        #assert (opt.align_data == True)
+        model = Pix2PixModelABC()
     elif opt.model == 'one_direction_test':
         from .one_direction_test_model import OneDirectionTestModel
         model = OneDirectionTestModel()

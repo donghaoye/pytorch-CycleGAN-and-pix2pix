@@ -20,7 +20,6 @@ class PairedData(object):
         self.data_loader_iter = iter(self.data_loader)
         self.iter = 0
         return self
-
     def __next__(self):
         self.iter += 1
         if self.iter > self.max_dataset_size:
@@ -64,8 +63,7 @@ class AlignedDataLoader(BaseDataLoader):
         transform = transforms.Compose(transformations)
 
         # Dataset A
-        dataset = ImageFolder(root=opt.dataroot + '/' + opt.phase,
-                              transform=transform, return_paths=True)
+        dataset = ImageFolder(root=opt.dataroot + '/' + opt.phase, transform=transform, return_paths=True)
         data_loader = torch.utils.data.DataLoader(
             dataset,
             batch_size=self.opt.batchSize,
@@ -75,8 +73,7 @@ class AlignedDataLoader(BaseDataLoader):
         self.dataset = dataset
 
         flip = opt.isTrain and not opt.no_flip
-        self.paired_data = PairedData(data_loader, opt.fineSize, 
-                                      opt.max_dataset_size, flip)
+        self.paired_data = PairedData(data_loader, opt.fineSize, opt.max_dataset_size, flip)
 
     def name(self):
         return 'AlignedDataLoader'
