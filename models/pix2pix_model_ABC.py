@@ -73,7 +73,6 @@ class Pix2PixModelABC(BaseModel):
         self.fake_B = self.netG.forward(self.real_A_1, self.real_A_2)
         self.real_B = Variable(self.input_B)
 
-
     # no backprop gradients
     def test(self):
         self.real_A_1 = Variable(self.input_A_1, volatile=True)

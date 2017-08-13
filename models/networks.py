@@ -482,7 +482,6 @@ class NLayerDiscriminator2(nn.Module):
 
     def forward(self, input):
         # if len(self.gpu_ids) and isinstance(input.data, torch.cuda.FloatTensor):
-        #     print input
         #     return nn.parallel.data_parallel(self.model, input, self.gpu_ids)
         # else:
         #     return self.model(input)
@@ -785,6 +784,8 @@ class siamese_Unet_2(nn.Module):
         self.up_sample7 = up_sample(self.gf_dim * 8, self.gf_dim * 2, use_bn=use_bn)
         self.up_sample8 = up_sample(self.gf_dim * 4, output_nc, use_bn=use_bn)
 
+        self.tanh = nn.Tanh()
+
     def forward(self, x1, x2):  # 1x3x256x256
         down1_skeleton_out = self.down1_skeleton(x1)  # 1x64x128x128
         down2_skeleton_out = self.down2_skeleton(down1_skeleton_out)  # 1x128x64x64
@@ -838,6 +839,7 @@ class siamese_Unet_2(nn.Module):
 
         up_sample_8 = self.up_sample8(up_out_7)                                         # 1x3x256x256
 
+        #return self.tanh(up_sample_8)
         return up_sample_8
 
 

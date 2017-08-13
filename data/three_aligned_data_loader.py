@@ -10,6 +10,9 @@ from pdb import set_trace as st
 
 """
 (A,B,C)
+这里是迭代器, Iterator
+1）如果使用列表，计算值时会一次获取所有值，那么就会占用更多的内存。而迭代器则是一个接一个计算。
+2）使代码更通用、更简单。
 """
 class ThreePairedData(object):
     def __init__(self, data_loader_A, data_loader_B, data_loader_C, max_dataset_size, flip):

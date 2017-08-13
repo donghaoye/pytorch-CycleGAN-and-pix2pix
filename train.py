@@ -1,5 +1,8 @@
+#coding=utf8
 import time
 from options.train_options import TrainOptions
+from itertools import islice
+
 opt = TrainOptions().parse()  # set CUDA_VISIBLE_DEVICES before import torch
 
 from data.data_loader import CreateDataLoader
@@ -18,13 +21,15 @@ total_steps = 0
 
 for epoch in range(1, opt.niter + opt.niter_decay + 1):
     epoch_start_time = time.time()
-    for i, data in enumerate(dataset):
+
+    for i, data in enumerate(dataset): #无序 dataset本来就无序
         iter_start_time = time.time()
         total_steps += opt.batchSize
         epoch_iter = total_steps - dataset_size * (epoch - 1)
         model.set_input(data)
         model.optimize_parameters()
 
+        # 只是每个一段时间打印一次信息，所以这里显示的图片路径也是看起来不连续
         if total_steps % opt.display_freq == 0:
             visualizer.display_current_results(model.get_current_visuals(), epoch)
 
@@ -48,6 +53,7 @@ for epoch in range(1, opt.niter + opt.niter_decay + 1):
 
     print('End of epoch %d / %d \t Time Taken: %d sec' %
           (epoch, opt.niter + opt.niter_decay, time.time() - epoch_start_time))
+
 
     if epoch > opt.niter:
         model.update_learning_rate()
