@@ -32,7 +32,8 @@ def make_dataset(dir):
                 images.append(path)
 
     # order by name
-    images.sort()
+    if len(images) > 0:
+        images.sort()
 
     return images
 
