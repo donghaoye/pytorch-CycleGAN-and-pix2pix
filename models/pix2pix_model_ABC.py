@@ -56,31 +56,23 @@ class Pix2PixModelABC(BaseModel):
     #         'B': B, 'B_paths': B_paths,
     #         'C': C, 'C_paths': C_paths}
     def set_input(self, input):
-        #AtoB = self.opt.which_direction == 'AtoB'
         input_A_1 = input['A']
         input_A_2 = input['B']
         input_B   = input['C']
-        # print input_A_1
-        # print input_A_2
-        # print input_B
 
         self.input_A_1.resize_(input_A_1.size()).copy_(input_A_1)
         self.input_A_2.resize_(input_A_2.size()).copy_(input_A_2)
         self.input_B.resize_(input_B.size()).copy_(input_B)
         self.image_path_A_1 = input['A_paths']
         self.image_path_A_2 = input['B_paths']
-        self.image_path_B = input['C_paths']
-
-        print self.image_path_A_1
-        print self.image_path_A_2
-        print self.image_path_B
-
+        self.image_path_B   = input['C_paths']
 
     def forward(self):
-        self.real_A_1 = Variable(self.input_A_1, volatile=True)
-        self.real_A_2 = Variable(self.input_A_2, volatile=True)
+        self.real_A_1 = Variable(self.input_A_1)
+        self.real_A_2 = Variable(self.input_A_2)
         self.fake_B = self.netG.forward(self.real_A_1, self.real_A_2)
         self.real_B = Variable(self.input_B)
+
 
     # no backprop gradients
     def test(self):
@@ -91,7 +83,7 @@ class Pix2PixModelABC(BaseModel):
 
     #get image paths
     def get_image_paths(self):
-        return self.image_path_A_1 + "," + self.image_path_A_2 + "," + self.image_path_B
+        return {"A1" : self.image_path_A_1, "A2" : self.image_path_A_2, "B" : self.image_path_B}
 
     def backward_D(self):
         # Fake
@@ -108,10 +100,6 @@ class Pix2PixModelABC(BaseModel):
         # Combined loss
         self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
 
-        # print fake_AB
-        # print real_AB
-        # print loss_D
-
         self.loss_D.backward()
 
     def backward_G(self):
@@ -127,7 +115,6 @@ class Pix2PixModelABC(BaseModel):
         #self.loss_G_tri = self.triLoss(self.fake_B, self.real_B, )
 
         self.loss_G = self.loss_G_GAN + self.loss_G_L1
-        #self.loss_G = self.loss_G_GAN
 
         self.loss_G.backward()
 
