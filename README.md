@@ -67,7 +67,7 @@ bash ./datasets/download_cyclegan_dataset.sh maps
 python train.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan
 python train.py --dataroot ./datasets/stand2sit --name stand2sit_cyclegan --model cycle_gan --which_model_netG flownet
 python train.py --dataroot /data/donghaoye/KTH/data_cycleGAN/skeleton --name skeleton_cyclegan --model cycle_gan
-python train.py --dataroot /data/donghaoye/KTH/data5_cycleGAN/handwaving_walking --name handwaving_walking_cyclegan --model cycle_gan
+python train.py --dataroot /data/donghaoye/KTH/data5_cycleGAN/handwaving_walking --name handwaving_walking_cyclegan --model cycle_gan  --align_data 2
 
 
 
@@ -96,11 +96,17 @@ CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /home/disk2/donghaoye/KTH/data
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG sia_unet --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
 
 
-CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --niter_decay 10 --niter 10 --align_data 2 --use_dropout --no_lsgan --serial_batches
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --niter_decay 10 --niter 10 --align_data 1 --use_dropout --no_lsgan --serial_batches
 
-CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data6/train_A_B_C/train --name skeleton_pix2pix_abc --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data6/train_A_B_C/train --name skeleton_pix2pix_abc --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3
 
 加上 --serial_batches 就代表是True了(因为是action='store_true')，保证了获取的目录有序，但是训练的时候，是无序？？
+
+
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --which_epoch
+
+
+
 
 ```
 - To view training results and loss plots, run `python -m visdom.server` and click the URL http://localhost:8097. To see more intermediate results, check out  `./checkpoints/facades_pix2pix/web/index.html`
@@ -109,6 +115,14 @@ CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data
 #!./scripts/test_pix2pix.sh
 python test.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --align_data
 CUDA_VISIBLE_DEVICES=1 python test.py --dataroot /home/disk2/donghaoye/KTH/data4/test_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA  --align_data
+
+CUDA_VISIBLE_DEVICES=1 python test.py --dataroot /home/disk2/donghaoye/KTH/data6/test_A_B_C/test --name skeleton_pix2pix_abc_siamese_madebystack_20170815 --model pix2pix_abc --which_model_netG sia_unet --serial_batches --align_data 3 --which_epoch latest
+
+
+CUDA_VISIBLE_DEVICES=1 python test.py --dataroot /home/disk2/donghaoye/KTH/data8_skeleton_ref_real/test_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0818 --model pix2pix_abc --which_model_netG sia_unet --serial_batches --align_data 3 --which_epoch 25
+
+
+
 
 ```
 The test results will be saved to a html file here: `./results/facades_pix2pix/latest_val/index.html`.

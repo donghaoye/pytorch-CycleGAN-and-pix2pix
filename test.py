@@ -29,7 +29,11 @@ for i, data in enumerate(dataset):
     model.test()
     visuals = model.get_current_visuals()
     img_path = model.get_image_paths()
-    print('process image... %s' % img_path)
-    visualizer.save_images(webpage, visuals, img_path)
+    if opt.model == 'pix2pix_abc':
+        print('process image... {}, {}'.format( img_path["A1"], img_path["A2"]))
+        visualizer.save_images(webpage, visuals, img_path["A1"])
+    else:
+        print('process image... %s' % img_path)
+        visualizer.save_images(webpage, visuals, img_path)
 
 webpage.save()
