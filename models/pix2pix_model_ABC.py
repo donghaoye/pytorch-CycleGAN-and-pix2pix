@@ -26,10 +26,10 @@ class Pix2PixModelABC(BaseModel):
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
             # D 的输入 是 9 channel了
-            #self.netD = networks.define_D(opt.input_nc + opt.input_nc + opt.output_nc, opt.ndf,
-            #                             opt.which_model_netD, opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
-            self.netD = networks.define_D(opt.input_nc + opt.output_nc, opt.ndf,
-                                          opt.which_model_netD, opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
+            self.netD = networks.define_D(opt.input_nc + opt.input_nc + opt.output_nc, opt.ndf,
+                                         opt.which_model_netD, opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
+            # self.netD = networks.define_D(opt.input_nc + opt.output_nc, opt.ndf,
+            #                               opt.which_model_netD, opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
 
         if not self.isTrain or opt.continue_train:
             self.load_network(self.netG, 'G', opt.which_epoch)
@@ -42,8 +42,13 @@ class Pix2PixModelABC(BaseModel):
             # define loss functions
             self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
             self.criterionL1 = torch.nn.L1Loss()
+            # self.triLoss = networks.TRILoss(tensor=self.Tensor)
+            # need to implement
 
-            #self.triLoss = networks.TRILoss(tensor=self.Tensor)
+            # pose loss
+
+
+
 
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -90,14 +95,14 @@ class Pix2PixModelABC(BaseModel):
     def backward_D(self):
         # Fake
         # stop backprop to the generator by detaching fake_B
-        # fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A_1, self.real_A_2, self.fake_B), 1))
-        fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A_2, self.fake_B), 1))
+        fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A_1, self.real_A_2, self.fake_B), 1))
+        # fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A_2, self.fake_B), 1))
         self.pred_fake = self.netD.forward(fake_AB.detach())
         self.loss_D_fake = self.criterionGAN(self.pred_fake, False)
 
         # Real
-        # real_AB = torch.cat((self.real_A_1, self.real_A_2, self.real_B), 1)         #.detach()
-        real_AB = torch.cat((self.real_A_2, self.real_B), 1)         #.detach()
+        real_AB = torch.cat((self.real_A_1, self.real_A_2, self.real_B), 1)         #.detach()
+        # real_AB = torch.cat((self.real_A_2, self.real_B), 1)         #.detach()
         self.pred_real = self.netD.forward(real_AB)
         self.loss_D_real = self.criterionGAN(self.pred_real, True)
 
@@ -108,8 +113,8 @@ class Pix2PixModelABC(BaseModel):
 
     def backward_G(self):
         # First, G(A) should fake the discriminator
-        #fake_AB = torch.cat((self.real_A_1, self.real_A_2, self.fake_B), 1)
-        fake_AB = torch.cat((self.real_A_2, self.fake_B), 1)
+        fake_AB = torch.cat((self.real_A_1, self.real_A_2, self.fake_B), 1)
+        # fake_AB = torch.cat((self.real_A_2, self.fake_B), 1)
         pred_fake = self.netD.forward(fake_AB)
         self.loss_G_GAN = self.criterionGAN(pred_fake, True)
 
