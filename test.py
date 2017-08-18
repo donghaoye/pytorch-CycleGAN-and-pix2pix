@@ -28,6 +28,9 @@ for i, data in enumerate(dataset):
     model.set_input(data)
     model.test()
     visuals = model.get_current_visuals()
+
+    visualizer.display_current_results(model.get_current_visuals(), i)
+
     img_path = model.get_image_paths()
     if opt.model == 'pix2pix_abc':
         print('process image... {}, {}'.format( img_path["A1"], img_path["A2"]))
