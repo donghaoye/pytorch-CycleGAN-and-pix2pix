@@ -46,8 +46,7 @@ class Pix2PixModelABC(BaseModel):
             # need to implement
 
             # pose loss
-
-
+            self.criterionPOSE = networks.POSELoss()
 
 
             # initialize optimizers
@@ -100,6 +99,8 @@ class Pix2PixModelABC(BaseModel):
         self.pred_fake = self.netD.forward(fake_AB.detach())
         self.loss_D_fake = self.criterionGAN(self.pred_fake, False)
 
+        self.loss_pose = self.criterionPOSE(self.real_A_1, self.real_B, self.pred_fake)
+
         # Real
         real_AB = torch.cat((self.real_A_1, self.real_A_2, self.real_B), 1)         #.detach()
         # real_AB = torch.cat((self.real_A_2, self.real_B), 1)         #.detach()
@@ -107,7 +108,8 @@ class Pix2PixModelABC(BaseModel):
         self.loss_D_real = self.criterionGAN(self.pred_real, True)
 
         # Combined loss
-        self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
+        #self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
+        self.loss_D = (self.loss_D_fake + self.loss_D_real + self.loss_pose) * 0.33
 
         self.loss_D.backward()
 
@@ -124,7 +126,9 @@ class Pix2PixModelABC(BaseModel):
         # tri loss
         #self.loss_G_tri = self.triLoss(self.fake_B, self.real_B, )
 
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1
+        self.loss_pose = self.criterionPOSE(self.real_A_1, self.real_B, self.pred_fake)
+
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.loss_pose
 
         self.loss_G.backward()
 
