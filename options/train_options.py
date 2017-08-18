@@ -1,3 +1,4 @@
+#coding=utf8
 from .base_options import BaseOptions
 
 class TrainOptions(BaseOptions):
@@ -21,5 +22,6 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--no_html', action='store_true', help='do not save intermediate training results to [opt.checkpoints_dir]/[opt.name]/web/')
         self.parser.add_argument('--no_flip'  , action='store_true', help='if specified, do not flip the images for data argumentation')
 
+        # 如果flip的话，就代表训练的时候，一次翻转一次不翻转。这个有什么用呢！？
         # NOT-IMPLEMENTED self.parser.add_argument('--preprocessing', type=str, default='resize_and_crop', help='resizing/cropping strategy')
         self.isTrain = True
