@@ -133,6 +133,19 @@ class GANLoss(nn.Module):
         target_tensor = self.get_target_tensor(input, target_is_real)
         return self.loss(input, target_tensor)
 
+class POSELoss(nn.Module):
+    def __init__(self):
+        super(POSELoss, self).__init__()
+        self.loss = nn.L1Loss()
+
+    def mask_pose(self, skeleton, fake, real_B):
+        return skeleton * real_B, skeleton * fake
+
+    def __call__(self, skeleton, fake, real_B):
+        real_B_, fake_ = self.mask_pose(skeleton, fake, real_B)
+        return self.loss(fake_, real_B_)
+
+
 # class TRILoss(nn.Module):
 #     def __init__(self, target_real_label=1.0, target_fake_label=0.0,
 #                  tensor=torch.FloatTensor):

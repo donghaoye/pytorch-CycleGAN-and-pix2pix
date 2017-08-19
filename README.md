@@ -105,6 +105,8 @@ CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data
 
 CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1
 
+# trianing in 51122
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0818 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip
 
 
 

@@ -99,17 +99,17 @@ class Pix2PixModelABC(BaseModel):
         self.pred_fake = self.netD.forward(fake_AB.detach())
         self.loss_D_fake = self.criterionGAN(self.pred_fake, False)
 
-        self.loss_pose = self.criterionPOSE(self.real_A_1, self.real_B, self.pred_fake)
-
         # Real
         real_AB = torch.cat((self.real_A_1, self.real_A_2, self.real_B), 1)         #.detach()
         # real_AB = torch.cat((self.real_A_2, self.real_B), 1)         #.detach()
         self.pred_real = self.netD.forward(real_AB)
         self.loss_D_real = self.criterionGAN(self.pred_real, True)
 
+        #self.loss_pose = self.criterionPOSE(self.real_A_1, self.fake_B, self.real_B)
+
         # Combined loss
-        #self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
-        self.loss_D = (self.loss_D_fake + self.loss_D_real + self.loss_pose) * 0.33
+        self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
+        #self.loss_D = (self.loss_D_fake + self.loss_D_real + self.loss_pose) * 0.33
 
         self.loss_D.backward()
 
@@ -126,7 +126,7 @@ class Pix2PixModelABC(BaseModel):
         # tri loss
         #self.loss_G_tri = self.triLoss(self.fake_B, self.real_B, )
 
-        self.loss_pose = self.criterionPOSE(self.real_A_1, self.real_B, self.pred_fake)
+        self.loss_pose = self.criterionPOSE(self.real_A_1, self.fake_B, self.real_B)
 
         self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.loss_pose
 
@@ -147,6 +147,7 @@ class Pix2PixModelABC(BaseModel):
         return OrderedDict([
                 ('G_GAN',  self.loss_G_GAN.data[0]),
                 ('G_L1',   self.loss_G_L1.data[0]),
+                ('G_Pose', self.loss_pose.data[0]),
                 ('D_real', self.loss_D_real.data[0]),
                 ('D_fake', self.loss_D_fake.data[0])
         ])

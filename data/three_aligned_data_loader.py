@@ -8,6 +8,7 @@ from data.image_folder import ImageFolder
 from builtins import object
 from pdb import set_trace as st
 
+
 """
 (A,B,C)
 这里是迭代器, Iterator
@@ -39,6 +40,7 @@ class ThreePairedData(object):
         A, A_paths = None, None
         B, B_paths = None, None
         C, C_paths = None, None
+
         try:
             A, A_paths = next(self.data_loader_A_iter)
         except StopIteration:
