@@ -1,3 +1,4 @@
+#coding=utf8
 from __future__ import print_function
 import torch
 import numpy as np
@@ -9,11 +10,17 @@ import collections
 
 # Converts a Tensor into a Numpy array
 # |imtype|: the desired type of the converted numpy array
+# 前面做了归一化的话，这个就要transpose
 def tensor2im(image_tensor, imtype=np.uint8):
     image_numpy = image_tensor[0].cpu().float().numpy()
     image_numpy = (np.transpose(image_numpy, (1, 2, 0)) + 1) / 2.0 * 255.0
     return image_numpy.astype(imtype)
 
+
+def tensor2im_no_transpose(image_tensor, imtype=np.uint8):
+    image_numpy = image_tensor[0].cpu().float().numpy()
+    image_numpy = np.transpose(image_numpy, (1, 2, 0))    # 代表将 第 1、2列往前移动，第0列放最后
+    return image_numpy.astype(imtype)
 
 def diagnose_network(net, name='network'):
     mean = 0.0

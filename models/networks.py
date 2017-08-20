@@ -139,10 +139,10 @@ class POSELoss(nn.Module):
         self.loss = nn.L1Loss()
 
     def mask_pose(self, skeleton, fake, real_B):
-        return skeleton * real_B, skeleton * fake
+        return (skeleton + 1) * fake, (skeleton + 1) * real_B
 
     def __call__(self, skeleton, fake, real_B):
-        real_B_, fake_ = self.mask_pose(skeleton, fake, real_B)
+        fake_, real_B_ = self.mask_pose(skeleton, fake, real_B)
         return self.loss(fake_, real_B_)
 
 

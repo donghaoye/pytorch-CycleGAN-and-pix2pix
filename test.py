@@ -29,7 +29,7 @@ for i, data in enumerate(dataset):
     model.test()
     visuals = model.get_current_visuals()
 
-    visualizer.display_current_results(model.get_current_visuals(), i)
+    #visualizer.display_current_results(model.get_current_visuals(), i)
 
     img_path = model.get_image_paths()
     if opt.model == 'pix2pix_abc':
