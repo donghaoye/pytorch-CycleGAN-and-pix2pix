@@ -85,8 +85,10 @@ class ThreePairedData(object):
 class ThreeAlignedDataLoader(BaseDataLoader):
     def initialize(self, opt):
         BaseDataLoader.initialize(self, opt)
+        #transformations = [transforms.Scale(opt.loadSize), transforms.RandomCrop(opt.fineSize),
+        #                   transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))] # 归一化，会产生负数。
         transformations = [transforms.Scale(opt.loadSize), transforms.RandomCrop(opt.fineSize),
-                           transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+                            transforms.ToTensor()]
         transform = transforms.Compose(transformations)
 
         # Dataset A, eg.. trainA目录
