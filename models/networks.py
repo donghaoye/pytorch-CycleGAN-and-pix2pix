@@ -145,6 +145,24 @@ class POSELoss(nn.Module):
         fake_, real_B_ = self.mask_pose(skeleton, fake, real_B)
         return self.loss(fake_, real_B_)
 
+class TVRegularizerLoss(nn.Module):
+    """ Enforces smoothness in image output. """
+
+    def __init__(self, img_width, img_height, weight=1.0):
+        self.img_width = img_width
+        self.img_height = img_height
+        self.weight = weight
+        self.uses_learning_phase = False
+        super(TVRegularizerLoss, self).__init__()
+
+    def __call__(self, x):
+        x_out = x.data
+        a = np.square(x_out[:, :, :self.img_width - 1, :self.img_height - 1] - x_out[:, :, 1:, :self.img_height - 1])
+        b = np.square(x_out[:, :, :self.img_width - 1, :self.img_height - 1] - x_out[:, :, :self.img_width - 1, 1:])
+        # a = np.square(x_out[:, :self.img_width - 1, :self.img_height - 1, :] - x_out[:, 1:, :self.img_height - 1, :])
+        # b = np.square(x_out[:, :self.img_width - 1, :self.img_height - 1, :] - x_out[:, :self.img_width - 1, 1:, :])
+        loss = self.weight * np.mean(np.sum(np.pow(a + b, 1.25)))
+        return loss
 
 # class TRILoss(nn.Module):
 #     def __init__(self, target_real_label=1.0, target_fake_label=0.0,

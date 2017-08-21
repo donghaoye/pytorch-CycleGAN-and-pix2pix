@@ -48,6 +48,8 @@ class Pix2PixModelABC(BaseModel):
             # pose loss
             self.criterionPOSE = networks.POSELoss()
 
+            # TVRegularizer loss
+            self.criterionTVR = networks.TVRegularizerLoss()
 
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -126,9 +128,13 @@ class Pix2PixModelABC(BaseModel):
         # tri loss
         #self.loss_G_tri = self.triLoss(self.fake_B, self.real_B, )
 
-        self.loss_pose = self.criterionPOSE(self.real_A_1, self.fake_B, self.real_B)
+        # pose loss
+        self.loss_pose = self.criterionPOSE(self.real_A_1, self.fake_B, self.real_B)  * 50
 
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.loss_pose
+        # tv loss
+        self.loss_tv = self.criterionTVR(self.fake_B)
+
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.loss_pose + self.loss_tv
 
         self.loss_G.backward()
 
@@ -148,6 +154,7 @@ class Pix2PixModelABC(BaseModel):
                 ('G_GAN',  self.loss_G_GAN.data[0]),
                 ('G_L1',   self.loss_G_L1.data[0]),
                 ('G_Pose', self.loss_pose.data[0]),
+                ('G_TV', self.loss_tv.data[0]),
                 ('D_real', self.loss_D_real.data[0]),
                 ('D_fake', self.loss_D_fake.data[0])
         ])
