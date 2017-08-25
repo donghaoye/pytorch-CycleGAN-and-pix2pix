@@ -9,6 +9,8 @@ from util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks
 
+from loss import VGGLoss
+
 class Pix2PixModelABC(BaseModel):
     def name(self):
         return 'Pix2PixModel'
@@ -49,7 +51,11 @@ class Pix2PixModelABC(BaseModel):
             self.criterionPOSE = networks.POSELoss()
 
             # TVRegularizer loss
-            self.criterionTVR = networks.TVRegularizerLoss()
+            #self.criterionTVR = networks.TVRegularizerLoss()
+
+            #  VGG loss
+            self.criterionVGG = VGGLoss()
+
 
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
@@ -132,9 +138,12 @@ class Pix2PixModelABC(BaseModel):
         self.loss_pose = self.criterionPOSE(self.real_A_1, self.fake_B, self.real_B)  * 50
 
         # tv loss
-        self.loss_tv = self.criterionTVR(self.fake_B)
+        # self.loss_tv = self.criterionTVR(self.fake_B)
 
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.loss_pose + self.loss_tv
+        # 为什么要把 real A也传进去呢？
+        self.loss_vgg = self.criterionVGG(1.0, 5.0, self.real_A_1, self.real_B, self.fake_B, True) * 1000000
+
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.loss_pose + self.loss_vgg
 
         self.loss_G.backward()
 
@@ -154,7 +163,8 @@ class Pix2PixModelABC(BaseModel):
                 ('G_GAN',  self.loss_G_GAN.data[0]),
                 ('G_L1',   self.loss_G_L1.data[0]),
                 ('G_Pose', self.loss_pose.data[0]),
-                ('G_TV', self.loss_tv.data[0]),
+                #('G_TV', self.loss_tv.data[0]),
+                ('G_vgg', self.loss_vgg.data[0]),
                 ('D_real', self.loss_D_real.data[0]),
                 ('D_fake', self.loss_D_fake.data[0])
         ])

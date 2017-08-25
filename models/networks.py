@@ -148,21 +148,25 @@ class POSELoss(nn.Module):
 class TVRegularizerLoss(nn.Module):
     """ Enforces smoothness in image output. """
 
-    def __init__(self, img_width, img_height, weight=1.0):
-        self.img_width = img_width
-        self.img_height = img_height
+    def __init__(self, weight=1.0):
+        # self.img_width = img_width
+        # self.img_height = img_height
         self.weight = weight
         self.uses_learning_phase = False
         super(TVRegularizerLoss, self).__init__()
 
     def __call__(self, x):
         x_out = x.data
-        a = np.square(x_out[:, :, :self.img_width - 1, :self.img_height - 1] - x_out[:, :, 1:, :self.img_height - 1])
-        b = np.square(x_out[:, :, :self.img_width - 1, :self.img_height - 1] - x_out[:, :, :self.img_width - 1, 1:])
+        img_width = x_out.size()[2]
+        img_height = x_out.size()[3]
+        a = np.square(x_out[:, :, :img_width - 1, :img_height - 1] - x_out[:, :, 1:, :img_height - 1])
+        b = np.square(x_out[:, :, :img_width - 1, :img_height - 1] - x_out[:, :, :img_width - 1, 1:])
         # a = np.square(x_out[:, :self.img_width - 1, :self.img_height - 1, :] - x_out[:, 1:, :self.img_height - 1, :])
         # b = np.square(x_out[:, :self.img_width - 1, :self.img_height - 1, :] - x_out[:, :self.img_width - 1, 1:, :])
-        loss = self.weight * np.mean(np.sum(np.pow(a + b, 1.25)))
-        return loss
+        #loss = self.weight * torch.mean(torch.sum(torch.pow(a + b, 1.25))) # 这个才正确
+        loss = self.weight * torch.sum(torch.pow(a + b, 1.25))
+        print loss
+        return torch.FloatTensor(loss)
 
 # class TRILoss(nn.Module):
 #     def __init__(self, target_real_label=1.0, target_fake_label=0.0,
