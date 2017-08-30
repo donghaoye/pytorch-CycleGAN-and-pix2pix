@@ -10,6 +10,8 @@ from .base_model import BaseModel
 from . import networks
 
 from loss import VGGLoss
+from PIL import Image
+import torchvision.transforms as transforms
 
 class Pix2PixModelABC(BaseModel):
     def name(self):
@@ -28,10 +30,12 @@ class Pix2PixModelABC(BaseModel):
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
             # D 的输入 是 9 channel了
-            self.netD = networks.define_D(opt.input_nc + opt.input_nc + opt.output_nc, opt.ndf,
-                                         opt.which_model_netD, opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
-            # self.netD = networks.define_D(opt.input_nc + opt.output_nc, opt.ndf,
-            #                               opt.which_model_netD, opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
+            if opt.which_model_netG == "sia_unet" or opt.which_model_netG == "stack_unet" or opt.which_model_netG == "sia_stack_unet":
+                self.netD = networks.define_D(opt.input_nc + opt.input_nc + opt.output_nc, opt.ndf,
+                                              opt.which_model_netD, opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
+            else:
+                self.netD = networks.define_D(opt.input_nc + opt.output_nc, opt.ndf,
+                                              opt.which_model_netD, opt.n_layers_D, opt.norm, use_sigmoid, self.gpu_ids)
 
         if not self.isTrain or opt.continue_train:
             self.load_network(self.netG, 'G', opt.which_epoch)
@@ -82,17 +86,37 @@ class Pix2PixModelABC(BaseModel):
         self.image_path_A_2 = input['B_paths']
         self.image_path_B   = input['C_paths']
 
+        transformations = [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))] # 归一化，会产生负数。
+        transform = transforms.Compose(transformations)
+        self.input_v_1 = Image.open("./imgs/val_1.png").convert('RGB')
+        self.input_v_2 = Image.open("./imgs/val_2.png").convert('RGB')
+        self.input_val_1 = transform(self.input_v_1).cuda()
+        self.input_val_2 = transform(self.input_v_2).cuda()
+
+
+
+
     def forward(self):
         self.real_A_1 = Variable(self.input_A_1)
         self.real_A_2 = Variable(self.input_A_2)
         self.fake_B = self.netG.forward(self.real_A_1, self.real_A_2)
         self.real_B = Variable(self.input_B)
 
+        self.real_val_1 = Variable(self.input_val_1, volatile=True)
+        self.real_val_2 = Variable(self.input_val_2, volatile=True)
+
+        s = self.real_A_1.size()
+        self.real_val_1 = self.real_val_1.expand(s)
+        self.real_val_2 = self.real_val_2.expand(s)
+        #self.fake_val = self.netG.forward(self.real_val_1, self.real_val_2)
+        self.fake_val = self.netG.eval().forward(self.real_val_1, self.real_val_2)
+
     # no backprop gradients, therefore use volatile=True
     def test(self):
         self.real_A_1 = Variable(self.input_A_1, volatile=True)
         self.real_A_2 = Variable(self.input_A_2, volatile=True)
-        self.fake_B = self.netG.forward(self.real_A_1, self.real_A_2)
+        #self.fake_B = self.netG.forward(self.real_A_1, self.real_A_2)
+        self.fake_B = self.netG.eval().forward(self.real_A_1, self.real_A_2)
         self.real_B = Variable(self.input_B, volatile=True)
 
     #get image paths
@@ -135,15 +159,16 @@ class Pix2PixModelABC(BaseModel):
         #self.loss_G_tri = self.triLoss(self.fake_B, self.real_B, )
 
         # pose loss
-        self.loss_pose = self.criterionPOSE(self.real_A_1, self.fake_B, self.real_B)  * 50
+        #self.loss_pose = self.criterionPOSE(self.real_A_1, self.fake_B, self.real_B)  * 50
 
         # tv loss
         # self.loss_tv = self.criterionTVR(self.fake_B)
 
         # 为什么要把 real A也传进去呢？
-        self.loss_vgg = self.criterionVGG(1.0, 5.0, self.real_A_1, self.real_B, self.fake_B, True) * 1000000
+        #self.loss_vgg = self.criterionVGG(1.0, 5.0, self.real_A_1, self.real_B, self.fake_B, True) * 1000000
 
-        self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.loss_pose + self.loss_vgg
+        #self.loss_G = self.loss_G_GAN + self.loss_G_L1 + self.loss_pose + self.loss_vgg
+        self.loss_G = self.loss_G_GAN + self.loss_G_L1
 
         self.loss_G.backward()
 
@@ -162,9 +187,9 @@ class Pix2PixModelABC(BaseModel):
         return OrderedDict([
                 ('G_GAN',  self.loss_G_GAN.data[0]),
                 ('G_L1',   self.loss_G_L1.data[0]),
-                ('G_Pose', self.loss_pose.data[0]),
+                #('G_Pose', self.loss_pose.data[0]),
                 #('G_TV', self.loss_tv.data[0]),
-                ('G_vgg', self.loss_vgg.data[0]),
+                #('G_vgg', self.loss_vgg.data[0]),
                 ('D_real', self.loss_D_real.data[0]),
                 ('D_fake', self.loss_D_fake.data[0])
         ])
@@ -174,10 +199,18 @@ class Pix2PixModelABC(BaseModel):
         real_A_2 = util.tensor2im(self.real_A_2.data)
         fake_B = util.tensor2im(self.fake_B.data)
         real_B = util.tensor2im(self.real_B.data)
+
+        real_val_1 = util.tensor2im(self.real_val_1.data)
+        real_val_2 = util.tensor2im(self.real_val_2.data)
+        fake_val = util.tensor2im(self.fake_val.data)
+
         return OrderedDict([
             ('real_A_1', real_A_1),
             ('real_A_2', real_A_2),
             ('fake_B',   fake_B),
+            ('real_val_1', real_val_1),
+            ('real_val_2', real_val_2),
+            ('fake_val', fake_val),
             ('real_B',   real_B)])
 
     def save(self, label):
