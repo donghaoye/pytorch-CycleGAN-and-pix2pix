@@ -27,6 +27,7 @@ class Pix2PixModelABC(BaseModel):
 
         # load/define networks
         self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.which_model_netG, opt.norm, opt.use_dropout, self.gpu_ids)
+        self.netG.train()
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
             # D 的输入 是 9 channel了
@@ -58,7 +59,7 @@ class Pix2PixModelABC(BaseModel):
             #self.criterionTVR = networks.TVRegularizerLoss()
 
             #  VGG loss
-            self.criterionVGG = VGGLoss()
+            #self.criterionVGG = VGGLoss()
 
 
             # initialize optimizers
@@ -99,7 +100,7 @@ class Pix2PixModelABC(BaseModel):
     def forward(self):
         self.real_A_1 = Variable(self.input_A_1)
         self.real_A_2 = Variable(self.input_A_2)
-        self.fake_B = self.netG.forward(self.real_A_1, self.real_A_2)
+        self.fake_B = self.netG.train().forward(self.real_A_1, self.real_A_2)
         self.real_B = Variable(self.input_B)
 
         self.real_val_1 = Variable(self.input_val_1, volatile=True)
@@ -116,7 +117,8 @@ class Pix2PixModelABC(BaseModel):
         self.real_A_1 = Variable(self.input_A_1, volatile=True)
         self.real_A_2 = Variable(self.input_A_2, volatile=True)
         #self.fake_B = self.netG.forward(self.real_A_1, self.real_A_2)
-        self.fake_B = self.netG.eval().forward(self.real_A_1, self.real_A_2)
+        self.netG.eval()
+        self.fake_B = self.netG.forward(self.real_A_1, self.real_A_2)
         self.real_B = Variable(self.input_B, volatile=True)
 
     #get image paths

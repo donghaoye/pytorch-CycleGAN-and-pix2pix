@@ -104,12 +104,46 @@ CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data
 
 
 
-
 # trianing in 51122
 CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0818 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0818 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip
 
 CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /home/disk2/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0824 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 50 --niter 50  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1
+
+
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0826 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip　--input_nc　6
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0826 --model pix2pix_abc --which_model_netG stack_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --input_nc 6
+
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0826 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --input_nc 3
+
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data9_skeleton_ref_real/train_ske_ref_img/all/ --name skeleton_pix2pix_abc_skeleton_ref_real_all_novgg_0826 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 200 --print_freq 200 --no_flip
+
+
+# siamese stack 级联
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /data/donghaoye/KTH/data9_skeleton_ref_real/train/all/ --name skeleton_pix2pix_abc_skeleton_ref_real_all_pose_vgg_0931_2 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 20 --print_freq 20 --no_flip --input_nc 3
+
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data9_skeleton_ref_real/train_ske_ref_img/all --name skeleton_pix2pix_abc_skeleton_ref_real_all_sia_stack0904 --model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 20 --niter 20 --use_dropout --no_lsgan --align_data 3 --display_freq 20 --print_freq 20 --no_flip --input_nc 3 --serial_batches
+
+
+skeleton数据集
+CUDA_VISIBLE_DEVICES=2 python train.py --dataroot /data/donghaoye/KTH/data9_skeleton_ref_real/train/all/ --name skeleton_pix2pix_abc_skeleton_ref_real_all_0914 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 200 --niter 200  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 200 --print_freq 200 --no_flip
+
+
+mpii数据集
+CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /data/donghaoye/datasets/mpii_all/mpii_pair/train --name skeleton_pix2pix_abc_skeleton_ref_real_all_sia_stack0931 --model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --input_nc 3
+
+fashion数据集
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /data/donghaoye/datasets/In-shop_AB/train --name skeleton_pix2pix_abc_skeleton_ref_real_all_sia_stack_fashion_0907 --model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --input_nc 3
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/In-shop_AB/train --name skeleton_pix2pix_abc_skeleton_ref_real_all_sia_stack_fashion_0907 --model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --input_nc 3
+
+
+youtube数据集
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/datasets/youtube_pose/train_test/train --name skeleton_pix2pix_abc_skeleton_ref_real_all_sia_stack_youtube_09_13 --model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 200 --niter 200  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --input_nc 3
+
+
+天河二号
+ opt.display_id > 0 使用visdom
+CUDA_VISIBLE_DEVICES=0,1,2,3 python train.py --dataroot /HOME/sysu_issjyin_1/BIGDATA/donghaoye/KTH/data9_skeleton_ref_real/train/all --name skeleton_pix2pix_abc_skeleton_ref_real_all_0915 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 100 --print_freq 100 --no_flip --display_id 0
 
 ```
 - To view training results and loss plots, run `python -m visdom.server` and click the URL http://localhost:8097. To see more intermediate results, check out  `./checkpoints/facades_pix2pix/web/index.html`
@@ -125,7 +159,7 @@ CUDA_VISIBLE_DEVICES=1 python test.py --dataroot /home/disk2/donghaoye/KTH/data6
 CUDA_VISIBLE_DEVICES=1 python test.py --dataroot /home/disk2/donghaoye/KTH/data8_skeleton_ref_real/test_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0824 --model pix2pix_abc --which_model_netG sia_unet --serial_batches --align_data 3 --which_epoch 10
 
 
-CUDA_VISIBLE_DEVICES=1 python test.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/test_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0818 --model pix2pix_abc --which_model_netG sia_unet --serial_batches --align_data 3 --which_epoch 10
+CUDA_VISIBLE_DEVICES=1 python test.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/test_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0818 --model pix2pix_abc --which_model_netG sia_unet --serial_batches --align_data 3 --which_epoch latest
 
 CUDA_VISIBLE_DEVICES=1 python test.py --dataroot /home/disk2/donghaoye/KTH/data8_skeleton_ref_real/test_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real --model pix2pix_abc --which_model_netG sia_unet --serial_batches --align_data 3 --which_epoch 10
 

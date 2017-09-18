@@ -6,8 +6,9 @@ from data.base_data_loader import BaseDataLoader
 from data.image_folder import ImageFolder
 # pip install future --upgrade
 from builtins import object
-from pdb import set_trace as st
+#from pdb import set_trace as st
 
+from PIL import Image, ImageChops, ImageOps
 
 """
 (A,B,C)
@@ -82,11 +83,39 @@ class ThreePairedData(object):
                     'B': B, 'B_paths': B_paths,
                     'C': C, 'C_paths': C_paths}
 
+# 指定长宽不变形缩放，填充0
+class MyScale(object):
+    def __init__(self, size=(256,256), pad=False):
+        self.size = size
+        self.pad = pad
+
+    def __call__(self, img):
+        img.thumbnail(self.size, Image.ANTIALIAS)
+        image_size = img.size
+        if self.pad:
+            thumb = img.crop((0, 0, self.size[0], self.size[1]))
+            offset_x = max((self.size[0] - image_size[0]) / 2, 0)
+            offset_y = max((self.size[1] - image_size[1]) / 2, 0)
+            thumb = ImageChops.offset(thumb, offset_x, offset_y)
+        else:
+            thumb = ImageOps.fit(img, self.size, Image.ANTIALIAS, (0.5, 0.5))
+        return thumb
+
 class ThreeAlignedDataLoader(BaseDataLoader):
     def initialize(self, opt):
         BaseDataLoader.initialize(self, opt)
-        transformations = [transforms.Scale(opt.loadSize), transforms.RandomCrop(opt.fineSize),
-                           transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))] # 归一化，会产生负数。
+        transformations = [
+                            #transforms.Scale(opt.loadSize),
+                            MyScale(size=(256, 256), pad=True),
+                            transforms.RandomCrop(opt.fineSize),
+                            transforms.ToTensor(),
+                           # this is wrong! because the fake samples are not normalized like this,
+                           # still they are inferred on the same network,
+                            transforms.Normalize((0.5, 0.5, 0.5),
+                                                (0.5, 0.5, 0.5))
+                           #lambda x: (x - x.min()) / x.max() * 2 - 1,  # [-1., 1.]
+                           ] # 归一化，会产生负数。
+
         #transformations = [transforms.Scale(opt.loadSize), transforms.RandomCrop(opt.fineSize),
         #                    transforms.ToTensor()]
         transform = transforms.Compose(transformations)

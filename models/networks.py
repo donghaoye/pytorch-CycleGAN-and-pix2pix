@@ -49,6 +49,10 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
         netG = FlowNetGenerator(input_nc, output_nc, gpu_ids=gpu_ids)
     elif which_model_netG == 'sia_unet':
         netG = siamese_Unet_4(input_nc, output_nc, use_bn=True)
+    elif which_model_netG == 'stack_unet':
+        netG = Stack_Unet_5(input_nc, output_nc, use_bn=True)
+    elif which_model_netG == 'sia_stack_unet':
+        netG = Siamese_Stack_Unet_6(input_nc, output_nc, use_bn=True)
     else:
         print('Generator model name [%s] is not recognized' % which_model_netG)
     if len(gpu_ids) > 0:
@@ -1053,4 +1057,98 @@ class siamese_Unet_4(nn.Module):
         up_sample_8 = self.up_sample8(up_out_7)                                         # 1x3x256x256
 
         return up_sample_8
+
+
+
+
+class Stack_Unet_5(nn.Module):
+    def __init__(self, input_nc, output_nc, use_bn=False):
+        super(Stack_Unet_5, self).__init__()
+        self.gf_dim = 64
+
+        # input 256*256*3
+        #self.down1_real = down_sample(input_nc, self.gf_dim, use_bn=False)
+        self.down1_real = nn.Conv2d(input_nc, self.gf_dim, kernel_size=4, stride=2, padding=1, bias=True)
+        self.down2_real = down_sample(self.gf_dim, self.gf_dim * 2, use_bn=use_bn)
+        self.down3_real = down_sample(self.gf_dim * 2, self.gf_dim * 4, use_bn=use_bn)
+        self.down4_real = down_sample(self.gf_dim * 4, self.gf_dim * 8, use_bn=use_bn)
+        self.down5_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        self.down6_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        self.down7_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
+        self.down8_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=False)
+
+        # cd512-cd1024-cd1024-c1024-c1024-c512-c256-c128 看第2位参数
+        self.up_sample1 = up_sample(self.gf_dim * 8, self.gf_dim * 8, dropout=False)  # it will cat in next step
+        self.up_sample2 = up_sample(self.gf_dim * 8 *2, self.gf_dim * 8, dropout=True)
+        self.up_sample3 = up_sample(self.gf_dim * 8 * 2, self.gf_dim * 8, dropout=True)
+        self.up_sample4 = up_sample(self.gf_dim * 8 * 2, self.gf_dim * 8, dropout=True)
+        self.up_sample5 = up_sample(self.gf_dim * 8 * 2, self.gf_dim * 4, dropout=False)
+        self.up_sample6 = up_sample(self.gf_dim * 8, self.gf_dim * 2, dropout=False)
+        self.up_sample7 = up_sample(self.gf_dim * 4, self.gf_dim , dropout=False)
+        #self.up_sample7 = up_sample(self.gf_dim * 4, self.gf_dim * 2, dropout=False)
+        self.up_sample8 = up_sample_result(self.gf_dim *2, output_nc)
+
+        self.tanh = nn.Tanh()
+
+    def forward(self, x1, x2):  # 1x3x256x256
+        x = torch.cat((x1, x2), 1)
+        down1_real_out = self.down1_real(x)
+        down2_real_out = self.down2_real(down1_real_out)    # 1x128x64x64
+        down3_real_out = self.down3_real(down2_real_out)    # 1x256x32x32
+        down4_real_out = self.down4_real(down3_real_out)    # 1x512x16x16
+        down5_real_out = self.down5_real(down4_real_out)    # 1x512x8x8
+        down6_real_out = self.down6_real(down5_real_out)    # 1x512x4x4
+        down7_real_out = self.down7_real(down6_real_out)    # 1x512x2x2
+        down8_real_out = self.down8_real(down7_real_out)    # 1x512x1x1
+
+        # mid
+        up_sample_1 = self.up_sample1(down8_real_out)               # 1x512x4x4
+        up_out_1 = torch.cat((up_sample_1, down7_real_out), 1)
+
+        up_sample_2 = self.up_sample2(up_out_1)
+        up_out_2 = torch.cat((up_sample_2, down6_real_out), 1)
+
+        up_sample_3 = self.up_sample3(up_out_2)
+        up_out_3 = torch.cat((up_sample_3, down5_real_out), 1)
+
+        up_sample_4 = self.up_sample4(up_out_3)
+        up_out_4 = torch.cat((up_sample_4, down4_real_out), 1)
+
+        up_sample_5 = self.up_sample5(up_out_4)
+        up_out_5 = torch.cat((up_sample_5, down3_real_out), 1)      # 1x512x32x32
+
+        up_sample_6 = self.up_sample6(up_out_5)
+        up_out_6 = torch.cat((up_sample_6, down2_real_out), 1)
+
+        up_sample_7 = self.up_sample7(up_out_6)
+        up_out_7 = torch.cat((up_sample_7, down1_real_out), 1)      # 1x128x128x128
+
+        up_sample_8 = self.up_sample8(up_out_7)
+        #up_out_2 = torch.cat((up_sample_7, down6_real_out), 1)
+
+
+        return up_sample_8
+
+
+
+class Siamese_Stack_Unet_6(nn.Module):
+    def __init__(self, input_nc, output_nc, use_bn=False):
+        super(Siamese_Stack_Unet_6, self).__init__()
+
+        self.siamese_unet = siamese_Unet_4(input_nc, output_nc, use_bn=True)
+        self.stack_unet = Stack_Unet_5(input_nc * 2, output_nc, use_bn=True)
+
+
+    def forward(self, x1, x2):  # 1x3x256x256
+        sia_1 = self.siamese_unet.forward(x1, x2)
+
+        stack_1 = self.stack_unet.forward(sia_1, x2)
+
+        stack_2 = self.stack_unet.forward(stack_1, x2)
+
+        stack_3 = self.stack_unet.forward(stack_2, x2)
+
+        stack_4 = self.stack_unet.forward(stack_3, x2)
+
+        return stack_4
 
