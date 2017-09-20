@@ -41,8 +41,8 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
     elif which_model_netG == 'unet_128':
         netG = UnetGenerator(input_nc, output_nc, 7, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids)
     elif which_model_netG == 'unet_256':
-        #netG = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids)
-        netG = siamese_Unet_3(input_nc, output_nc, use_bn=True)
+        netG = UnetGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids)
+        #netG = siamese_Unet_3(input_nc, output_nc, use_bn=True)
     elif which_model_netG == 'snet_256':
         netG = SpatialGenerator(input_nc, output_nc, 8, ngf, norm_layer=norm_layer, use_dropout=use_dropout, gpu_ids=gpu_ids)
     elif which_model_netG == 'flownet':
@@ -52,11 +52,12 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
     elif which_model_netG == 'stack_unet':
         netG = Stack_Unet_5(input_nc, output_nc, use_bn=True)
     elif which_model_netG == 'sia_stack_unet':
-        netG = Siamese_Stack_Unet_6(input_nc, output_nc, use_bn=True)
+        netG = Siamese_Stack_Unet_6(input_nc, output_nc, use_bn=True, gpu_ids=gpu_ids)
     else:
         print('Generator model name [%s] is not recognized' % which_model_netG)
     if len(gpu_ids) > 0:
-        netG.cuda(device_id=gpu_ids[0])
+        #netG.cuda(device_id=gpu_ids[0])
+        netG.cuda()
     netG.apply(weights_init)
     return netG
 
@@ -79,7 +80,8 @@ def define_D(input_nc, ndf, which_model_netD,
         print('Discriminator model name [%s] is not recognized' %
               which_model_netD)
     if use_gpu:
-        netD.cuda(device_id=gpu_ids[0])
+        #netD.cuda(device_id=gpu_ids[0])
+        netD.cuda()
     netD.apply(weights_init)
     return netD
 
@@ -963,8 +965,9 @@ class siamese_Unet_3(nn.Module):
 
 
 class siamese_Unet_4(nn.Module):
-    def __init__(self, input_nc, output_nc, use_bn=False):
+    def __init__(self, input_nc, output_nc, use_bn=False, gpu_ids=None):
         super(siamese_Unet_4, self).__init__()
+        self.gpu_ids = gpu_ids
         self.gf_dim = 64
 
         ''' siamese down start'''
@@ -988,6 +991,25 @@ class siamese_Unet_4(nn.Module):
         self.down6_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
         self.down7_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
         self.down8_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=False)
+
+        self.down1_skeleton = nn.DataParallel(self.down1_skeleton, device_ids=self.gpu_ids)
+        self.down2_skeleton = nn.DataParallel(self.down2_skeleton, device_ids=self.gpu_ids)
+        self.down3_skeleton = nn.DataParallel(self.down3_skeleton, device_ids=self.gpu_ids)
+        self.down4_skeleton = nn.DataParallel(self.down4_skeleton, device_ids=self.gpu_ids)
+        self.down5_skeleton = nn.DataParallel(self.down5_skeleton, device_ids=self.gpu_ids)
+        self.down6_skeleton = nn.DataParallel(self.down6_skeleton, device_ids=self.gpu_ids)
+        self.down7_skeleton = nn.DataParallel(self.down7_skeleton, device_ids=self.gpu_ids)
+        self.down8_skeleton = nn.DataParallel(self.down8_skeleton, device_ids=self.gpu_ids)
+
+        self.down1_real = nn.DataParallel(self.down1_real, device_ids=self.gpu_ids)
+        self.down2_real = nn.DataParallel(self.down2_real, device_ids=self.gpu_ids)
+        self.down3_real = nn.DataParallel(self.down3_real, device_ids=self.gpu_ids)
+        self.down4_real = nn.DataParallel(self.down4_real, device_ids=self.gpu_ids)
+        self.down5_real = nn.DataParallel(self.down5_real, device_ids=self.gpu_ids)
+        self.down6_real = nn.DataParallel(self.down6_real, device_ids=self.gpu_ids)
+        self.down7_real = nn.DataParallel(self.down7_real, device_ids=self.gpu_ids)
+        self.down8_real = nn.DataParallel(self.down8_real, device_ids=self.gpu_ids)
+
         ''' siamese down end'''
 
         # cd512-cd1024-cd1024-c1024-c1024-c512-c256-c128 看第2位参数
@@ -1001,7 +1023,14 @@ class siamese_Unet_4(nn.Module):
         #self.up_sample8 = up_sample(self.gf_dim * 4, output_nc, use_bn=use_bn)
         self.up_sample8 = up_sample_result(self.gf_dim * 4, output_nc)
 
-        self.tanh = nn.Tanh()
+        self.up_sample1 = nn.DataParallel(self.up_sample1, device_ids=self.gpu_ids)
+        self.up_sample2 = nn.DataParallel(self.up_sample2, device_ids=self.gpu_ids)
+        self.up_sample3 = nn.DataParallel(self.up_sample3, device_ids=self.gpu_ids)
+        self.up_sample4 = nn.DataParallel(self.up_sample4, device_ids=self.gpu_ids)
+        self.up_sample5 = nn.DataParallel(self.up_sample5, device_ids=self.gpu_ids)
+        self.up_sample6 = nn.DataParallel(self.up_sample6, device_ids=self.gpu_ids)
+        self.up_sample7 = nn.DataParallel(self.up_sample7, device_ids=self.gpu_ids)
+        self.up_sample8 = nn.DataParallel(self.up_sample8, device_ids=self.gpu_ids)
 
     def forward(self, x1, x2):  # 1x3x256x256
         down1_skeleton_out = self.down1_skeleton(x1)  # 1x64x128x128
@@ -1062,8 +1091,9 @@ class siamese_Unet_4(nn.Module):
 
 
 class Stack_Unet_5(nn.Module):
-    def __init__(self, input_nc, output_nc, use_bn=False):
+    def __init__(self, input_nc, output_nc, use_bn=False, gpu_ids=None):
         super(Stack_Unet_5, self).__init__()
+        self.gpu_ids = gpu_ids
         self.gf_dim = 64
 
         # input 256*256*3
@@ -1077,6 +1107,15 @@ class Stack_Unet_5(nn.Module):
         self.down7_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=use_bn)
         self.down8_real = down_sample(self.gf_dim * 8, self.gf_dim * 8, use_bn=False)
 
+        self.down1_real = nn.DataParallel(self.down1_real, device_ids=self.gpu_ids)
+        self.down2_real = nn.DataParallel(self.down2_real, device_ids=self.gpu_ids)
+        self.down3_real = nn.DataParallel(self.down3_real, device_ids=self.gpu_ids)
+        self.down4_real = nn.DataParallel(self.down4_real, device_ids=self.gpu_ids)
+        self.down5_real = nn.DataParallel(self.down5_real, device_ids=self.gpu_ids)
+        self.down6_real = nn.DataParallel(self.down6_real, device_ids=self.gpu_ids)
+        self.down7_real = nn.DataParallel(self.down7_real, device_ids=self.gpu_ids)
+        self.down8_real = nn.DataParallel(self.down8_real, device_ids=self.gpu_ids)
+
         # cd512-cd1024-cd1024-c1024-c1024-c512-c256-c128 看第2位参数
         self.up_sample1 = up_sample(self.gf_dim * 8, self.gf_dim * 8, dropout=False)  # it will cat in next step
         self.up_sample2 = up_sample(self.gf_dim * 8 *2, self.gf_dim * 8, dropout=True)
@@ -1088,7 +1127,15 @@ class Stack_Unet_5(nn.Module):
         #self.up_sample7 = up_sample(self.gf_dim * 4, self.gf_dim * 2, dropout=False)
         self.up_sample8 = up_sample_result(self.gf_dim *2, output_nc)
 
-        self.tanh = nn.Tanh()
+        self.up_sample1 = nn.DataParallel(self.up_sample1, device_ids=self.gpu_ids)
+        self.up_sample2 = nn.DataParallel(self.up_sample2, device_ids=self.gpu_ids)
+        self.up_sample3 = nn.DataParallel(self.up_sample3, device_ids=self.gpu_ids)
+        self.up_sample4 = nn.DataParallel(self.up_sample4, device_ids=self.gpu_ids)
+        self.up_sample5 = nn.DataParallel(self.up_sample5, device_ids=self.gpu_ids)
+        self.up_sample6 = nn.DataParallel(self.up_sample6, device_ids=self.gpu_ids)
+        self.up_sample7 = nn.DataParallel(self.up_sample7, device_ids=self.gpu_ids)
+        self.up_sample8 = nn.DataParallel(self.up_sample8, device_ids=self.gpu_ids)
+
 
     def forward(self, x1, x2):  # 1x3x256x256
         x = torch.cat((x1, x2), 1)
@@ -1132,11 +1179,11 @@ class Stack_Unet_5(nn.Module):
 
 
 class Siamese_Stack_Unet_6(nn.Module):
-    def __init__(self, input_nc, output_nc, use_bn=False):
+    def __init__(self, input_nc, output_nc, use_bn=False, gpu_ids=None):
         super(Siamese_Stack_Unet_6, self).__init__()
 
-        self.siamese_unet = siamese_Unet_4(input_nc, output_nc, use_bn=True)
-        self.stack_unet = Stack_Unet_5(input_nc * 2, output_nc, use_bn=True)
+        self.siamese_unet = siamese_Unet_4(input_nc, output_nc, use_bn=True, gpu_ids=gpu_ids)
+        self.stack_unet = Stack_Unet_5(input_nc * 2, output_nc, use_bn=True, gpu_ids=gpu_ids)
 
 
     def forward(self, x1, x2):  # 1x3x256x256

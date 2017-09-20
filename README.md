@@ -89,8 +89,8 @@ bash ./datasets/download_pix2pix_dataset.sh facades
 ```bash
 #!./scripts/train_pix2pix.sh
 
---align_data 2
-CUDA_VISIBLE_DEVICES=1 python train.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --align_data --use_dropout --no_lsgan
+
+CUDA_VISIBLE_DEVICES=1, 2, 3 python train.py --dataroot ./datasets/facades --name facades_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --lambda_A 100 --align_data 1 --use_dropout --no_lsgan --display_id 0
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG unet_256 --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
 CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG flownet --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data4/train_A_B --name skeleton_pix2pix --model pix2pix --which_model_netG sia_unet --which_direction BtoA --niter_decay 10 --niter 10 --align_data --use_dropout --no_lsgan
@@ -105,10 +105,10 @@ CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data
 
 
 # trianing in 51122
-CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0818 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip
+CUDA_VISIBLE_DEVICES=2,3 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0919 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --gpu_ids 0,1
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0818 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip
 
-CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /home/disk2/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0824 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 50 --niter 50  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1
+CUDA_VISIBLE_DEVICES=2,3 python train.py --dataroot /home/disk2/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0919 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 50 --niter 50  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --gpu_ids 0,1
 
 
 CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving --name skeleton_pix2pix_abc_skeleton_ref_real_0826 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip　--input_nc　6
@@ -134,7 +134,8 @@ CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /data/donghaoye/datasets/mpii_
 
 fashion数据集
 CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /data/donghaoye/datasets/In-shop_AB/train --name skeleton_pix2pix_abc_skeleton_ref_real_all_sia_stack_fashion_0907 --model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --input_nc 3
-CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/In-shop_AB/train --name skeleton_pix2pix_abc_skeleton_ref_real_all_sia_stack_fashion_0907 --model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --input_nc 3
+11111号机
+CUDA_VISIBLE_DEVICES=0,1,2 python train.py --dataroot /home/disk2/donghaoye/In-shop_AB/train --name skeleton_pix2pix_abc_skeleton_ref_real_all_sia_stack_fashion_0919 --model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --input_nc 3 --gpu_ids 0,1,2 --batchSize 10
 
 
 youtube数据集
@@ -143,7 +144,7 @@ CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/datasets/youtu
 
 天河二号
  opt.display_id > 0 使用visdom
-CUDA_VISIBLE_DEVICES=0,1,2,3 python train.py --dataroot /HOME/sysu_issjyin_1/BIGDATA/donghaoye/KTH/data9_skeleton_ref_real/train/all --name skeleton_pix2pix_abc_skeleton_ref_real_all_0915 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 100 --print_freq 100 --no_flip --display_id 0
+yhrun -n 4 -w gn[06-09] -p gpu CUDA_VISIBLE_DEVICES=0,1,2,3 python train.py --dataroot /HOME/sysu_issjyin_1/BIGDATA/donghaoye/KTH/data9_skeleton_ref_real/train/all --name skeleton_pix2pix_abc_skeleton_ref_real_all_0919 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 100 --print_freq 100 --no_flip --gpu_ids 0,1,2,3 --batchSize 10 --val_path /HOME/sysu_issjyin_1/BIGDATA/donghaoye/KTH/data9_skeleton_ref_real/val
 
 ```
 - To view training results and loss plots, run `python -m visdom.server` and click the URL http://localhost:8097. To see more intermediate results, check out  `./checkpoints/facades_pix2pix/web/index.html`
