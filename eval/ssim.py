@@ -42,3 +42,7 @@ if __name__=="__main__":
     ssim = ssim_by_fold(path)
 
     print ssim
+
+
+# ref url
+# https://github.com/jterrace/pyssim
