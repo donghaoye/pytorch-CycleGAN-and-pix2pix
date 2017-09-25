@@ -27,9 +27,8 @@ softmax = None
 # Call this function with list of images. Each of elements should be a
 # numpy array with values ranging from 0 to 255.
 def get_inception_score(images, splits=10):
-    #assert(type(images) == list)
-    #print (type(images[0]))
-    #assert(type(images[0]) == np.ndarray)
+    assert(type(images) == list)
+    assert(type(images[0]) == np.ndarray)
     assert(len(images[0].shape) == 3)
     assert(np.max(images[0]) > 10)
     assert(np.min(images[0]) >= 0.0)
