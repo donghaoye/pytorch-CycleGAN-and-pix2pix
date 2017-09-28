@@ -21,6 +21,8 @@ class TrainOptions(BaseOptions):
         self.parser.add_argument('--pool_size', type=int, default=50, help='the size of image buffer that stores previously generated images')
         self.parser.add_argument('--no_html', action='store_true', help='do not save intermediate training results to [opt.checkpoints_dir]/[opt.name]/web/')
         self.parser.add_argument('--no_flip'  , action='store_true', help='if specified, do not flip the images for data argumentation')
+        self.parser.add_argument('--use_pose'  , action='store_true', help='use pose loss')
+        self.parser.add_argument('--use_vgg'  , action='store_true', help='use vgg loss')
 
         # 如果flip的话，就代表训练的时候，一次翻转一次不翻转。这个有什么用呢！？
         # NOT-IMPLEMENTED self.parser.add_argument('--preprocessing', type=str, default='resize_and_crop', help='resizing/cropping strategy')

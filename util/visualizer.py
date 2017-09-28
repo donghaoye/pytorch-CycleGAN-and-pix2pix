@@ -51,7 +51,7 @@ class Visualizer():
                     ims.append(img_path)
                     txts.append(label)
                     links.append(img_path)
-                webpage.add_images(ims, txts, links, width=self.win_width)
+                webpage.add_images(ims, txts, links, width=self.win_width, height=self.win_height)
             webpage.save()
 
     # errors: dictionary of error labels and values

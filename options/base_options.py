@@ -9,8 +9,8 @@ class BaseOptions():
 
     def initialize(self):
         self.parser.add_argument('--dataroot', required=True, help='path to images (should have subfolders trainA, trainB, valA, valB, etc)')
-        self.parser.add_argument('--val_path', required=True, help='path to validation images')
-        self.parser.add_argument('--batchSize', type=int, default=50, help='input batch size')
+        # self.parser.add_argument('--val_path', required=True, help='path to validation images')
+        self.parser.add_argument('--batchSize', type=int, default=1, help='input batch size')
         self.parser.add_argument('--loadSize', type=int, default=256, help='scale images to this size')
         self.parser.add_argument('--fineSize', type=int, default=256, help='then crop to this size') #default=256
         self.parser.add_argument('--input_nc', type=int, default=3, help='# of input image channels')
@@ -31,8 +31,8 @@ class BaseOptions():
         self.parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints', help='models are saved here')
         self.parser.add_argument('--norm', type=str, default='instance', help='instance normalization or batch normalization')
         self.parser.add_argument('--serial_batches', action='store_true', help='if true, takes images in order to make batches, otherwise takes them randomly')
-        self.parser.add_argument('--display_win_width', type=int, default=256,  help='display window size')  #default=256
-        self.parser.add_argument('--display_win_height', type=int, default=256, help='display window size')  # default=256
+        self.parser.add_argument('--display_win_width', type=int, default=56,  help='display window size')  #default=256
+        self.parser.add_argument('--display_win_height', type=int, default=56, help='display window size')  # default=256
         self.parser.add_argument('--display_id', type=int, default=1, help='window id of the web display')
         self.parser.add_argument('--identity', type=float, default=0.0, help='use identity mapping. Setting identity other than 1 has an effect of scaling the weight of the identity mapping loss. For example, if the weight of the identity loss should be 10 times smaller than the weight of the reconstruction loss, please set optidentity = 0.1')
         self.parser.add_argument('--use_dropout', action='store_true', help='use dropout for the generator')
