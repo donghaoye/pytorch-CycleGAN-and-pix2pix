@@ -238,11 +238,15 @@ GOOD
 
 2017-09-25
 sia_stack 的 GAN + L1 + pose + VGG
-CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data9_skeleton_ref_real/train/all/ --name KTH_sia_stack_GAN_L1_pose_vgg_0925 --model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 20 --print_freq 20 --no_flip --input_nc 3 --serial_batches --use_vgg --use_pose --batchSize 5 --val_path xxxx
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data9_skeleton_ref_real/train/all/ --name KTH_sia_stack_GAN_L1_pose_vgg_0925 \
+--model pix2pix_abc --which_model_netG sia_stack_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 \
+ --display_freq 20 --print_freq 20 --no_flip --input_nc 3 --serial_batches --use_vgg --use_pose --batchSize 5 --val_path xxxx
 
 
 sia的GAN + L1
-CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data9_skeleton_ref_real/train_ske_ref_img/all --name KTH_sia_GAN_L1_0925 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 20 --print_freq 20 --no_flip --input_nc 3 --serial_batches --batchSize 5 --val_path xxxx
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data9_skeleton_ref_real/train_ske_ref_img/all \
+--name KTH_sia_GAN_L1_0925 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 20 --niter 20  --serial_batches \
+--use_dropout --no_lsgan --align_data 3 --display_freq 20 --print_freq 20 --no_flip --input_nc 3 --serial_batches --batchSize 5 --val_path xxxx
 
 
 
@@ -253,11 +257,138 @@ cycleGAN_KTH_GAN_L1_0928
 CUDA_VISIBLE_DEVICES=0,1 python train.py --dataroot /home/disk2/donghaoye/KTH/data10_handwaving_walking \
  --name cycleGAN_KTH_GAN_L1_0928 --model cycle_gan_aabb --no_flip --serial_batches --use_dropout --no_lsgan \
  --which_model_netG sia_unet --niter_decay 20 --niter 20 --align_data 4 \
- --display_freq 20 --print_freq 20 --input_nc 3  --batchSize 5 --gpu_ids 0,1
+ --display_freq 20 --print_freq 20 --input_nc 3  --batchSize 5 --gpu_ids 0,1 --identity 1
 
 ========================================================================================
 cycleGAN_KTH_GAN_L1_bilinear_0928  将原始的逆卷积变为双线性插值的上采样
-CUDA_VISIBLE_DEVICES=0,1 python train.py --dataroot /home/disk2/donghaoye/KTH/data10_handwaving_walking \
- --name cycleGAN_KTH_GAN_L1_0928 --model cycle_gan_aabb --no_flip --serial_batches --use_dropout --no_lsgan \
+CUDA_VISIBLE_DEVICES=2,3 python train.py --dataroot /home/disk2/donghaoye/KTH/data10_handwaving_walking \
+ --name cycleGAN_KTH_GAN_L1_Bi_0928 --model cycle_gan_aabb --no_flip --serial_batches --use_dropout --no_lsgan \
  --which_model_netG sia_unet_bilinear --niter_decay 20 --niter 20 --align_data 4 \
- --display_freq 20 --print_freq 20 --input_nc 3  --batchSize 5 --gpu_ids 0,1
+ --display_freq 20 --print_freq 20 --input_nc 3  --batchSize 1 --gpu_ids 0,1 --identity 1
+
+
+
+ 2017-09-29
+ old_cycleGAN_KTH_GAN_L1_0929
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /home/disk2/donghaoye/KTH/data10_handwaving_walking \
+ --name old_cycleGAN_KTH_GAN_L1_0928 --model cycle_gan_aabb --no_flip --serial_batches --use_dropout --no_lsgan \
+ --which_model_netG sia_unet --niter_decay 20 --niter 20 --align_data 4 \
+ --display_freq 20 --print_freq 20 --input_nc 3  --batchSize 5 --gpu_ids 0 --identity 0
+
+
+==================================================================================
+2017-10-04
+CUDA_VISIBLE_DEVICES=2 python test.py --dataroot /home/disk2/donghaoye/KTH/data9_skeleton_ref_real/test_ske_ref_img/all \
+--name KTH_sia_GAN_L1_0925 \
+--model pix2pix_abc --which_model_netG sia_unet --serial_batches --align_data 3 --which_epoch latest --val_path xxxx
+
+CUDA_VISIBLE_DEVICES=2,3 python test.py --dataroot /data/donghaoye/KTH/data9_skeleton_ref_real/test/all/  \
+--name KTH_sia_stack_GAN_L1_pose_vgg_0925 \
+--model pix2pix_abc --which_model_netG sia_unet --serial_batches --align_data 3 --which_epoch latest --val_path xxxx --gpu_ids 0,1
+==================================================================================
+
+
+
+2017-10-11
+cycleGAN_KTH_GAN_L1_1011
+self.loss_G = self.loss_G_A + self.loss_cycle_A + self.loss_idt_A 只是保留了一边的G_A loss
+------------------------------------------
+CUDA_VISIBLE_DEVICES=2 python train.py --dataroot /data/donghaoye/KTH/data10_handwaving_walking \
+ --name cycleGAN_KTH_GAN_L1_1011 --model cycle_gan_aabb --no_flip --serial_batches --use_dropout --no_lsgan \
+ --which_model_netG sia_unet --niter_decay 50 --niter 50 --align_data 4 \
+ --display_freq 20 --print_freq 20 --input_nc 3  --batchSize 5 --gpu_ids 0
+
+cycleGAN_KTH_GAN_L1_All_1011
+self.loss_G = self.loss_G_A + self.loss_cycle_A + self.loss_idt_A  利用原始的cycleGAN
+------------------------------------------
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /data/donghaoye/KTH/data10_handwaving_walking \
+ --name oldCycleGAN_KTH_GAN_L1_1011 --model cycle_gan_aabb --no_flip --serial_batches --use_dropout --no_lsgan \
+ --which_model_netG sia_unet --niter_decay 50 --niter 50 --align_data 4 \
+ --display_freq 20 --print_freq 20 --input_nc 3  --batchSize 5 --gpu_ids 0
+
+
+self.loss_G_A + self.loss_idt_A
+cycleGAN_KTH_GAN_L1_only_1011
+self.loss_G = self.loss_G_A + self.loss_cycle_A + self.loss_idt_A  利用原始的cycleGAN
+------------------------------------------
+CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data10_handwaving_walking \
+ --name cycleGAN_KTH_GAN_L1_only_1011 --model cycle_gan_aabb --no_flip --serial_batches --use_dropout --no_lsgan \
+ --which_model_netG sia_unet --niter_decay 100 --niter 100 --align_data 4 \
+ --display_freq 20 --print_freq 20 --input_nc 3  --batchSize 5 --gpu_ids 0
+
+
+
+ 2017-10-11
+
+self.loss_G = self.loss_G_A + self.loss_cycle_A + self.loss_idt_A 只是保留了一边的G_A loss
+------------------------------------------
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /home/disk2/donghaoye/KTH/data10_handwaving_walking \
+ --name cycleGAN_KTH_GAN_L1_1011 --model cycle_gan_aabb --no_flip --serial_batches --use_dropout --no_lsgan \
+ --which_model_netG sia_unet --niter_decay 50 --niter 50 --align_data 4 \
+ --display_freq 100 --print_freq 100 --input_nc 3  --batchSize 1 --gpu_ids 0
+
+
+
+>>>>>>>>>>>>>>>>>>>>>>>美丽的分割线>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+  2017-10-17
+自定义predict_z
+这里的/data/donghaoye/KTH/data11_predict_z/trainC 是从data9里面直接获取
+  CUDA_VISIBLE_DEVICES=1 python train.py --dataroot /data/donghaoye/KTH/data11_predict_z/train/trainC --name KTH_predict_z_L1_1017 \
+--model predict_z --which_model_netG predict_z --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 5 \
+ --display_freq 100 --print_freq 100 --no_flip --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0
+
+CUDA_VISIBLE_DEVICES=2 python train.py --dataroot /data/donghaoye/KTH/data11_predict_z/train/trainC --name KTH_predict_z_L1_vgg_1017 \
+--model predict_z --which_model_netG predict_z --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 5 \
+ --display_freq 100 --print_freq 100 --no_flip --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0
+
+ CUDA_VISIBLE_DEVICES=0 python train.py --dataroot /data/donghaoye/KTH/data11_predict_z/train/trainC --name KTH_predict_z_GAN_L1_vgg_1017 \
+--model predict_z --which_model_netG predict_z --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 5 \
+ --display_freq 100 --print_freq 100 --no_flip --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0 --use_gan
+
+增加获取z0 和 z1
+CUDA_VISIBLE_DEVICES=3 python train.py --dataroot /data/donghaoye/KTH/data9_skeleton_ref_real/train/all/ --name KTH_en_de_GAN_L1_pose_vgg_1017 \
+--model pix2pix_abc --which_model_netG sia_en_de --niter_decay 20 --niter 20  --serial_batches --use_dropout --no_lsgan --align_data 3 \
+ --display_freq 100 --print_freq 100 --no_flip --input_nc 3 --serial_batches --use_vgg --use_pose --batchSize 1 --gpu_ids 0
+
+#原始版本
+CUDA_VISIBLE_DEVICES=2,3 python train.py --dataroot /data/donghaoye/KTH/data8_skeleton_ref_real/train_ske_ref_img/handwaving \
+--name skeleton_pix2pix_abc_skeleton_ref_real_0919 --model pix2pix_abc --which_model_netG sia_unet --niter_decay 100 --niter 100 \
+--serial_batches --use_dropout --no_lsgan --align_data 3 --display_freq 1 --print_freq 1 --no_flip --gpu_ids 0,1
+
+
+
+2017-10-24
+#testing!!!
+CUDA_VISIBLE_DEVICES=2 python test.py --dataroot /data/donghaoye/KTH/data11_predict_z/test/testC  \
+--name KTH_predict_z_L1_1017 --model predict_z --which_model_netG predict_z \
+--align_data 5 --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0
+
+CUDA_VISIBLE_DEVICES=2 python test.py --dataroot /data/donghaoye/KTH/data11_predict_z/test/testC  \
+--name KTH_predict_z_L1_vgg_1017 --model predict_z --which_model_netG predict_z \
+--align_data 5 --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0
+
+CUDA_VISIBLE_DEVICES=2 python test.py --dataroot /data/donghaoye/KTH/data11_predict_z/test/testC  \
+--name KTH_predict_z_GAN_L1_vgg_1017 --model predict_z --which_model_netG predict_z \
+--align_data 5 --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0
+
+CUDA_VISIBLE_DEVICES=2 python test.py --dataroot /data/donghaoye/KTH/data9_skeleton_ref_real/test/all/  \
+--name KTH_en_de_GAN_L1_pose_vgg_1017 --model pix2pix_abc --which_model_netG sia_en_de \
+--align_data 3 --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0
+
+#原始版本
+CUDA_VISIBLE_DEVICES=2 python test.py --dataroot /data/donghaoye/KTH/data9_skeleton_ref_real/test/all/  \
+--name skeleton_pix2pix_abc_skeleton_ref_real_0919 --model pix2pix_abc --which_model_netG sia_unet \
+--align_data 3 --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0
+
+
+CUDA_VISIBLE_DEVICES=2 python test.py --dataroot /data/donghaoye/KTH/selected_pointList/test_data/hand  \
+--name skeleton_pix2pix_abc_skeleton_ref_real_0919 --model pix2pix_abc --which_model_netG sia_unet \
+--align_data 3 --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0 \
+--results_dir /data/donghaoye/KTH/selected_pointList/test_data/hand/results/
+
+CUDA_VISIBLE_DEVICES=3 python test.py --dataroot /data/donghaoye/KTH/selected_pointList/test_data/hand2run  \
+--name skeleton_pix2pix_abc_skeleton_ref_real_0919 --model pix2pix_abc --which_model_netG sia_unet \
+--align_data 3 --input_nc 3 --serial_batches --batchSize 1 --gpu_ids 0 \
+--results_dir /data/donghaoye/KTH/selected_pointList/test_data/hand2run/results/
